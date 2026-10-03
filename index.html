@@ -1,4 +1,6 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="he"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>מעבדת למידה חישובית</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -84,7 +86,7 @@ tr:last-child td{border-bottom:0}
 tr.hl td{background:var(--mark);color:var(--mark-ink)}
 tr.dim td{opacity:.45}
 .yes{color:var(--green);font-weight:700}.no{color:var(--red);font-weight:700}
-.pill{display:inline-block;padding:0 8px;border-radius:99px;font-size:12px;font-weight:600;border:1px solid currentColor}
+.pill{display:inline-block;white-space:nowrap;padding:0 8px;border-radius:99px;font-size:12px;font-weight:600;border:1px solid currentColor}
 .steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;counter-reset:s}
 .steps li{padding:10px 14px;border-inline-start:3px solid var(--line);background:var(--paper);border-radius:0 8px 8px 0}
 .steps li.now{border-color:var(--pen);background:var(--pen-soft)}
@@ -119,14 +121,31 @@ svg text{font-family:var(--f-mono);font-size:11px;fill:var(--muted)}
   nav.index button{white-space:nowrap;border:1px solid var(--line);background:var(--sheet)}
   .bench{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:no-preference){.steps li,tr.hl td{transition:background .25s}}
+.bankbar{display:flex;flex-direction:column;gap:12px}
+.bank{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.bank h3.yr{grid-column:1/-1;margin:14px 0 0;font-family:var(--f-display);font-size:24px;border-bottom:1px solid var(--line);padding-bottom:4px}
+.bank h3.yr span{font-size:16px;color:var(--muted);font-weight:500}
+.ex{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:var(--sheet);min-width:0}
+.ex.ix{border-color:var(--pen)}
+.exh{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.exh .pill{color:var(--pen)}
+.files{display:flex;flex-wrap:wrap;gap:6px}
+.fl{font-size:13px;font-weight:600;padding:4px 10px;border-radius:6px;text-decoration:none;color:var(--ink);background:var(--paper);border:1px solid var(--line)}
+.fl.sol{background:var(--green-soft);border-color:transparent}
+.fl:hover{border-color:var(--pen);color:var(--pen)}
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.tag{all:unset;cursor:pointer;font-size:11.5px;padding:1px 7px;border-radius:99px;color:var(--muted);border:1px solid var(--line)}
+.tag:hover,.tag.on{color:var(--pen);border-color:var(--pen)}
+.tag:focus-visible,.fl:focus-visible{outline:2px solid var(--pen)}
 </style>
+</head><body>
 <div class="app" dir="rtl" lang="he">
   <header class="top">
     <div>
       <h1>מעבדת <span>למידה חישובית</span></h1>
       <p>כל אלגוריתם שמופיע במבחני הקורס, עם השאלות האמיתיות טעונות מראש. משנים מספר והחישוב מתעדכן מיד, שלב אחרי שלב.</p>
     </div>
-    <div class="legend"><span><b>ב'24 א'</b> = סמסטר ב' 2024, מועד א'</span><span><b>ש3</b> = שאלה 3</span><span>7 מבחנים: ב'24–ב'26, ג'25</span></div>
+    <div class="legend"><span><b>ב'24 א'</b> = סמסטר ב' 2024, מועד א'</span><span><b>ש3</b> = שאלה 3</span><span>מאגר: 47 מבחנים 2011–2026</span></div>
   </header>
   <div class="layout">
     <nav class="index" id="nav" aria-label="נושאים"></nav>
@@ -472,7 +491,7 @@ function applyPreset(sec, t, i) {
   if (p.sub && t.setSub) t.setSub(p.sub);
   Object.entries(p.v).forEach(([id, val]) => { const el = sec.querySelector('#' + id); if (!el) return; if (el.type === 'checkbox') el.checked = !!val; else el.value = val; });
   if (t.afterPreset) t.afterPreset(p);
-  $$('.chip', sec).forEach(c => c.classList.toggle('on', +c.dataset.p === i));
+  $$('.chip[data-p]', sec).forEach(c => c.classList.toggle('on', +c.dataset.p === i));
   const nt = sec.querySelector('.pnote'); if (nt) { nt.innerHTML = p.note || ''; nt.hidden = !p.note; }
   t.run();
 }
@@ -790,6 +809,40 @@ ${o.terms.map(t => `P(${esc(t.f)}=${esc(t.v)} | ${esc(o.c)}) = ${t.smooth ? `(${
 מונה = ${[F(o.prior), ...o.terms.map(t => F(t.prob))].join(' · ')} = ${F(o.score, 5)}</div>`).join('');
       html += `<div class="mathblock">נרמול: ${R.out.map(o => `P(${esc(o.c)}|x) = ${F(o.score, 5)} / ${F(R.out.reduce((s, x) => s + x.score, 0), 5)} = ${F(o.post)}`).join('\n')}</div>`;
       $('#n-out', sec).innerHTML = html;
+    };
+  }
+});
+/* ---------- 0. Exam bank ---------- */
+const EXAMS = [{"y": 2026, "h": "", "s": "ב", "m": "א", "f": [{"r": "sol", "u": "exams/2026-B-A-sol.pdf", "n": "CLMN ML Sem_B 2026 Moed A ANSWERS"}], "t": ["metrics", "knn", "tree", "perc", "svm", "kmeans", "ada", "nn"], "ix": "b26a"}, {"y": 2025, "h": "", "s": "ג", "m": "ב", "f": [{"r": "sol", "u": "exams/2025-C-B-sol.pdf", "n": "CLMN ML Sem_C 2025 Moed B ANSWERS"}], "t": ["metrics", "roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "dbscan", "ada", "nn"], "ix": "c25b"}, {"y": 2025, "h": "", "s": "ג", "m": "א", "f": [{"r": "sol", "u": "exams/2025-C-A-sol.pdf", "n": "CLMN ML Sem_C 2025 Moed A ANSWERS"}], "t": ["metrics", "roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "nn"], "ix": "c25a"}, {"y": 2025, "h": "", "s": "ב", "m": "ב", "f": [{"r": "sol", "u": "exams/2025-B-B-sol.pdf", "n": "CLMN ML Sem_B 2025 Moed B ANSWERS"}], "t": ["metrics", "roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "nn"], "ix": "b25b"}, {"y": 2025, "h": "", "s": "ב", "m": "א", "f": [{"r": "sol", "u": "exams/2025-B-A-sol.pdf", "n": "CLMN ML Sem_B 2025 Moed A ANSWERS"}], "t": ["metrics", "knn", "tree", "nb", "perc", "svm", "kmeans", "nn"], "ix": "b25a"}, {"y": 2024, "h": "", "s": "ב", "m": "א", "f": [{"r": "sol", "u": "exams/2024-B-A-sol.pdf", "n": "CLMN ML Sem_B 2024 Moed A ANSWERS PUBLIC ANSDETAILED FIXED"}], "t": ["roc", "tree", "perc", "svm", "kmeans", "ada", "nn"], "ix": "b24a"}, {"y": 2024, "h": "", "s": "ב", "m": "ב", "f": [{"r": "sol", "u": "exams/2024-B-B-sol.pdf", "n": "CLMN ML Sem_B 2024 Moed B ANSWERS"}], "t": ["metrics", "roc", "tree", "nb", "svm", "kmeans", "nn"], "ix": "b24b"}, {"y": 2024, "h": "", "s": "ג", "m": "א", "f": [{"r": "sol", "u": "exams/2024-C-A-sol.pdf", "n": "CLMN ML Sem_C 2024 Moed A ANSWERS"}], "t": ["metrics", "tree", "nb", "svm", "kmeans", "nn"]}, {"y": 2023, "h": "", "s": "ב", "m": "א", "f": [{"r": "sol", "u": "exams/2023-B-A-sol.pdf", "n": "CLMN ML Sem_B 2023 Moed A ANSWERS REVERSED"}], "t": ["metrics", "roc", "tree", "nb", "svm", "kmeans", "ada", "nn"]}, {"y": 2022, "h": "", "s": "ב", "m": "א", "f": [{"r": "sol", "u": "exams/2022-B-A-sol.pdf", "n": "ML-2022-SEM-B-MOED-A פתרון לפרסום"}], "t": ["roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "ada", "nn"]}, {"y": 2022, "h": "", "s": "ב", "m": "ב", "f": [{"r": "sol", "u": "exams/2022-B-B-sol.pdf", "n": "__ML-2022-exam-Sol-SEMB-MOEDB"}], "t": ["metrics", "roc", "knn", "nb", "svm", "kmeans", "dbscan", "ada", "nn"]}, {"y": 2021, "h": "תשפא", "s": "ב", "m": "א", "f": [{"r": "sol", "u": "exams/2021-B-A-sol.pdf", "n": "בחינה - למידה חישובית - תשפא - סמסטר ב - מועד א- פתרון"}], "t": ["roc", "nb", "svm", "kmeans", "ada", "nn"]}, {"y": 2021, "h": "תשפא", "s": "ב", "m": "ב", "f": [{"r": "sol", "u": "exams/2021-B-B-sol.pdf", "n": "בחינה - למידה חישובית - תשפא - סמסטר ב - מועד ב-פתרון"}], "t": ["roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "nn"]}, {"y": 2021, "h": "תשפא", "s": "ג", "m": "א", "f": [{"r": "sol", "u": "exams/2021-C-A-sol.pdf", "n": "בחינה - למידה חישובית - תשפא - סמסטר ג - מועד א פתרון"}], "t": ["metrics", "roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "dbscan", "ada", "nn"]}, {"y": 2021, "h": "", "s": "ג", "m": "ב", "f": [{"r": "sol", "u": "exams/2021-C-B-sol.pdf", "n": "מבחן למידה חישובית קיץ 2021 - מועד ב פתרון (2)"}], "t": ["roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "dbscan", "ada", "nn"]}, {"y": 2020, "h": "תשפ", "s": "ב", "m": "א", "f": [{"r": "sol", "u": "exams/2020-B-A-sol.pdf", "n": "בחינה - למידה חישובית - תשפ - סמסטר ב - מועד א פתרון"}], "t": ["knn", "tree", "perc", "svm", "kmeans", "ada", "nn"]}, {"y": 2020, "h": "תשפ", "s": "ב", "m": "ב", "f": [{"r": "sol", "u": "exams/2020-B-B-sol.pdf", "n": "בחינה - למידה חישובית - תשפ - סמסטר ב - מועד ב פתרון"}], "t": ["metrics", "roc", "knn", "tree", "perc", "svm", "kmeans", "ada", "nn"]}, {"y": 2020, "h": "תשפ", "s": "ג", "m": "א", "f": [{"r": "sol", "u": "exams/2020-C-A-sol.pdf", "n": "בחינה - למידה חישובית - תשפ - סמסטר ג - מועד א פתרון"}], "t": ["roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "dbscan", "ada"]}, {"y": 2020, "h": "תשפ", "s": "ג", "m": "ב", "f": [{"r": "sol", "u": "exams/2020-C-B-sol.pdf", "n": "בחינה - למידה חישובית - תשפ - סמסטר ג - מועד ב פתרון"}], "t": ["roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "dbscan", "ada"]}, {"y": 2019, "h": "תשעט", "s": "ב", "m": "א", "f": [{"r": "q", "u": "exams/2019-B-A-q.pdf", "n": "29. תשעט - סמסטר ב - מועד א -  בחינה"}, {"r": "sol", "u": "exams/2019-B-A-sol.pdf", "n": "29. תשעט - סמסטר ב - מועד א -  פתרון | 31.בחינה - למידה חישובית - תשעט - סמסטר ב - מועד א פתרון"}, {"r": "appeal", "u": "exams/2019-B-A-appeal.pdf", "n": "29. תשעט - סמסטר ב - מועד א -  השגות"}], "t": ["metrics", "knn", "tree", "nb", "perc", "svm", "kmeans", "dbscan", "ada", "nn"]}, {"y": 2019, "h": "תשעט", "s": "ב", "m": "ב", "f": [{"r": "q", "u": "exams/2019-B-B-q.pdf", "n": "30. תשעט - סמסטר ב - מועד ב -  בחינה"}, {"r": "sol", "u": "exams/2019-B-B-sol.pdf", "n": "30. תשעט - סמסטר ב - מועד ב -  פתרון | 32.בחינה - למידה חישובית - תשעט - סמסטר ב - מועד ב פתרון"}], "t": ["metrics", "knn", "tree", "nb", "perc", "svm", "kmeans", "dbscan", "ada", "nn"]}, {"y": 2019, "h": "תשעט", "s": "ג", "m": "א", "f": [{"r": "sol", "u": "exams/2019-C-A-sol.pdf", "n": "33.בחינה - למידה חישובית - תשעט - סמסטר ג - מועד א פתרון"}], "t": ["knn", "tree", "nb", "perc", "svm", "kmeans", "dbscan", "ada", "nn"]}, {"y": 2019, "h": "תשעט", "s": "ג", "m": "ב", "f": [{"r": "sol", "u": "exams/2019-C-B-sol.pdf", "n": "34.בחינה - למידה חישובית - תשעט - סמסטר ג - מועד ב פתרון"}], "t": ["knn", "tree", "nb", "perc", "svm", "kmeans", "dbscan", "ada", "nn"]}, {"y": 2018, "h": "תשעח", "s": "ב", "m": "א", "f": [{"r": "q", "u": "exams/2018-B-A-q.pdf", "n": "23. תשעח - סמסטר ב - מועד א -  בחינה חלק פתוח ואמריקאי"}, {"r": "sol", "u": "exams/2018-B-A-sol.pdf", "n": "23. תשעח - סמסטר ב - מועד א -  פתרון חלק אמריקאי | 23. תשעח - סמסטר ב - מועד א -  פתרון חלק פתוח"}, {"r": "appeal", "u": "exams/2018-B-A-appeal.pdf", "n": "23. תשעח - סמסטר ב - מועד א -  התייחסות להשגות"}], "t": ["roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "dbscan", "ada", "nn"]}, {"y": 2017, "h": "תשעז", "s": "ב", "m": "א", "f": [{"r": "q", "u": "exams/2017-B-A-q.pdf", "n": "27. תשעז - סמסטר ב - מועד א -  שאלון אמריקאי | 27. תשעז - סמסטר ב - מועד א -  שאלון פתוח"}, {"r": "sol", "u": "exams/2017-B-A-sol.pdf", "n": "27. תשעז - סמסטר ב - מועד א -  פתרון אמריקאי | 27. תשעז - סמסטר ב - מועד א -  פתרון פתוח"}, {"r": "appeal", "u": "exams/2017-B-A-appeal.pdf", "n": "27. תשעז - סמסטר ב - מועד א -  השגות"}], "t": ["roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "dbscan", "ada", "nn"]}, {"y": 2017, "h": "תשעז", "s": "ב", "m": "ב", "f": [{"r": "q", "u": "exams/2017-B-B-q.pdf", "n": "28. תשעז - סמסטר ב - מועד ב -  שאלון אמריקאי | 28. תשעז - סמסטר ב - מועד ב -  שאלון פתוח"}, {"r": "sol", "u": "exams/2017-B-B-sol.pdf", "n": "28. תשעז - סמסטר ב - מועד ב -  פתרון שאלון פתוח | 28.אמריקאי תשעז - סמסטר ב - מועד ב -  פתרון"}, {"r": "appeal", "u": "exams/2017-B-B-appeal.pdf", "n": "28. תשעז - סמסטר ב - מועד ב -  התייחסות להשגות"}], "t": ["roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "dbscan", "ada", "nn"]}, {"y": 2016, "h": "תשעו", "s": "ב", "m": "ב", "f": [{"r": "sol", "u": "exams/2016-B-B-sol.pdf", "n": "24. תשעו - סמסטר ב - מועד ב -  פתרון פתוח | 24. תשעו - סמסטר ב - מועד ב -  שאלון ופתרון אמריקאי"}], "t": ["knn", "tree", "nb", "perc", "svm", "kmeans", "ada", "nn"]}, {"y": 2015, "h": "תשעה", "s": "ב", "m": "א", "f": [{"r": "q", "u": "exams/2015-B-A-q.pdf", "n": "19. תשעה - סמסטר ב - מועד א -  חלק פתוח | 19. תשעה - סמסטר ב - מועד א -  שאלון אמריקאי"}, {"r": "sol", "u": "exams/2015-B-A-sol.pdf", "n": "19. תשעה - סמסטר ב - מועד א -  פתרון אמריקאי | 19. תשעה - סמסטר ב - מועד א -  פתרון חלק פתוח"}], "t": ["roc", "knn", "perc", "svm", "kmeans", "ada", "nn"]}, {"y": 2015, "h": "תשעה", "s": "ב", "m": "ב", "f": [{"r": "q", "u": "exams/2015-B-B-q.pdf", "n": "20. תשעה - סמסטר ב - מועד ב -  חלק פתוח | 20. תשעה - סמסטר ב - מועד ב -  שאלון אמריקאי"}, {"r": "sol", "u": "exams/2015-B-B-sol.pdf", "n": "20. תשעה - סמסטר ב - מועד ב -  פתרון אמריקאי | 20. תשעה - סמסטר ב - מועד ב -  פתרון פתוח"}], "t": ["metrics", "knn", "tree", "nb", "perc", "svm", "kmeans", "ada"]}, {"y": 2015, "h": "תשעה", "s": "ג", "m": "א", "f": [{"r": "q", "u": "exams/2015-C-A-q.pdf", "n": "21. תשעה - סמסטר קיץ - מועד א -  חלק פתוח | 21. תשעה - סמסטר קיץ - מועד א -  שאלון אמריקאי"}, {"r": "sol", "u": "exams/2015-C-A-sol.pdf", "n": "21. תשעה - סמסטר קיץ - מועד א -  פתרון אמריקאי | 21. תשעה - סמסטר קיץ - מועד א -  פתרון חלק פתוח"}], "t": ["metrics", "knn", "tree", "nb", "perc", "svm", "kmeans", "ada", "nn"]}, {"y": 2015, "h": "תשעה", "s": "ג", "m": "ב", "f": [{"r": "q", "u": "exams/2015-C-B-q.pdf", "n": "22. תשעה - סמסטר קיץ - מועד ב -  שאלון אמריקאי"}, {"r": "sol", "u": "exams/2015-C-B-sol.pdf", "n": "22. תשעה - סמסטר קיץ - מועד ב -  פתרון אמריקאי | 22. תשעה - סמסטר קיץ - מועד ב -  פתרון חלק פתוח"}], "t": ["roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "dbscan", "ada", "nn"]}, {"y": 2014, "h": "תשעד", "s": "א", "m": "א", "f": [{"r": "q", "u": "exams/2014-A-A-q.pdf", "n": "13. תשעד - סמסטר א - מועד א -  אמריקאי ופתוח - שאלות"}, {"r": "sol", "u": "exams/2014-A-A-sol.pdf", "n": "13. תשעד - סמסטר א - מועד א -  פתרון"}], "t": ["roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "ada"]}, {"y": 2014, "h": "תשעד", "s": "א", "m": "ב", "f": [{"r": "q", "u": "exams/2014-A-B-q.pdf", "n": "14. תשעד - סמסטר א - מועד ב -  אמריקאי ופתוח - שאלות"}, {"r": "sol", "u": "exams/2014-A-B-sol.pdf", "n": "13. תשעד - סמסטר א - מועד ב -  פתרון"}], "t": ["roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "dbscan", "ada", "nn"]}, {"y": 2014, "h": "תשעד", "s": "ב", "m": "א", "f": [{"r": "q", "u": "exams/2014-B-A-q.pdf", "n": "15. תשעד - סמסטר ב - מועד א -  אמריקאי - שאלות | 15. תשעד - סמסטר ב - מועד א -  חלק פתוח - שאלות"}, {"r": "sol", "u": "exams/2014-B-A-sol.pdf", "n": "15. תשעד - סמסטר ב - מועד א -  פתרון אמריקאי | 15. תשעד - סמסטר ב - מועד א -  פתרון חלק פתוח"}], "t": ["metrics", "knn", "nb", "perc", "svm", "kmeans", "dbscan", "ada", "nn"]}, {"y": 2014, "h": "תשעד", "s": "ב", "m": "ב", "f": [{"r": "q", "u": "exams/2014-B-B-q.pdf", "n": "16. תשעד - סמסטר ב - מועד ב -  אמריקאי - שאלות | 16. תשעד - סמסטר ב - מועד ב -  שאלות חלק פתוח- שאלות"}, {"r": "sol", "u": "exams/2014-B-B-sol.pdf", "n": "16. תשעד סמסטר ב מועד ב פתרון פתוח + אמריקאי"}], "t": ["metrics", "knn", "tree", "nb", "perc", "svm", "kmeans", "ada", "nn"]}, {"y": 2014, "h": "תשעד", "s": "ג", "m": "א", "f": [{"r": "q", "u": "exams/2014-C-A-q.pdf", "n": "17. תשעד - סמסטר קיץ - מועד א -  שאלון אמריקאי | 17. תשעד - סמסטר קיץ - מועד א -  שאלון פתוח"}, {"r": "sol", "u": "exams/2014-C-A-sol.pdf", "n": "17. תשעד - סמסטר קיץ - מועד א -  פתרון אמריקאי | 17. תשעד - סמסטר קיץ - מועד א -  פתרון חלק פתוח"}], "t": ["metrics", "roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "ada", "nn"]}, {"y": 2014, "h": "תשעד", "s": "ג", "m": "ב", "f": [{"r": "q", "u": "exams/2014-C-B-q.pdf", "n": "18. תשעד - סמסטר קיץ - מועד ב -  חלק פתוח"}, {"r": "sol", "u": "exams/2014-C-B-sol.pdf", "n": "18. תשעד - סמסטר קיץ - מועד ב -  פתרון חלק אמריקאי(2) | 18. תשעד - סמסטר קיץ - מועד ב -  פתרון חלק אמריקאי | 18. תשעד - סמסטר קיץ - מועד ב -  פתרון חלק פתוח"}], "t": ["roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "dbscan", "ada"]}, {"y": 2013, "h": "תשעג", "s": "ב", "m": "א", "f": [{"r": "q", "u": "exams/2013-B-A-q.pdf", "n": "9. תשעג - סמסטר ב - מועד א-  אמריקאי ופתוח - שאלות"}, {"r": "sol", "u": "exams/2013-B-A-sol.pdf", "n": "9. תשעג - סמסטר ב - מועד א- מבחן אמריקאי - מועד א  פתרון | 9. תשעג - סמסטר ב - מועד א- מבחן פתוח - פתרון"}], "t": ["knn", "tree", "nb", "perc", "svm", "kmeans", "ada", "nn"]}, {"y": 2013, "h": "תשעג", "s": "ב", "m": "ב", "f": [{"r": "q", "u": "exams/2013-B-B-q.pdf", "n": "10. תשעג - סמסטר ב - מועד ב-  אמריקאי ופתוח - שאלות"}, {"r": "sol", "u": "exams/2013-B-B-sol.pdf", "n": "10. תשעג - סמסטר ב - מועד א- מבחן אמריקאי - מועד ב  פתרון | 10. תשעג - סמסטר ב - מועד א- מבחן פתוח - פתרון"}], "t": ["metrics", "roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "dbscan", "ada"]}, {"y": 2013, "h": "תשעג", "s": "ג", "m": "א", "f": [{"r": "q", "u": "exams/2013-C-A-q.pdf", "n": "11. תשעג - סמסטר קיץ - מועד א-  אמריקאי ופתוח - שאלות"}, {"r": "sol", "u": "exams/2013-C-A-sol.pdf", "n": "11. תשעג - סמסטר קיץ - מועד א- מבחן אמריקאי - פתרון | 11. תשעג - סמסטר קיץ - מועד א- מבחן פתוח - פתרון"}], "t": ["roc", "knn", "tree", "nb", "perc", "svm", "ada", "nn"]}, {"y": 2013, "h": "תשעג", "s": "ג", "m": "ב", "f": [{"r": "q", "u": "exams/2013-C-B-q.pdf", "n": "12. תשעג - סמסטר קיץ - מועד ב-  אמריקאי ופתוח - שאלות"}, {"r": "sol", "u": "exams/2013-C-B-sol.pdf", "n": "12. תשעג - סמסטר קיץ - מועד ב- מבחן אמריקאי - פתרון | 12. תשעג - סמסטר קיץ - מועד ב- מבחן פתוח - פתרון"}], "t": ["roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "ada", "nn"]}, {"y": 2012, "h": "תשעב", "s": "ב", "m": "א", "f": [{"r": "q", "u": "exams/2012-B-A-q.pdf", "n": "5. תשעב סמ_ ב_ מועד א - שאלות פתוחות | 5. תשעב סמסטר ב_ - מועד א - חלק אמריקאי"}, {"r": "sol", "u": "exams/2012-B-A-sol.pdf", "n": "5. תשעב סמ_ ב_ מועד א שאלות פתוחות - פתרון"}], "t": ["roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "ada", "nn"]}, {"y": 2012, "h": "תשעב", "s": "ב", "m": "ב", "f": [{"r": "q", "u": "exams/2012-B-B-q.pdf", "n": "6. תשעב סמ_ ב_ מועד ב  - שאלות פתוחות"}, {"r": "sol", "u": "exams/2012-B-B-sol.pdf", "n": "6. תשעב - סמסטר ב - מועד ב - אמריקאי -  פתרון | 6. תשעב - סמסטר ב - מועד ב - שאלות פתוחות - פתרון"}], "t": ["metrics", "knn", "tree", "nb", "perc", "svm", "kmeans", "dbscan", "ada", "nn"]}, {"y": 2012, "h": "תשעב", "s": "ג", "m": "א", "f": [{"r": "q", "u": "exams/2012-C-A-q.pdf", "n": "7. תשעב סמ_ קיץ מועד א - שאלות פתוחות | 7. תשעב סמסטר קיץ - מועד א - מבחן אמריקאי_"}, {"r": "sol", "u": "exams/2012-C-A-sol.pdf", "n": "7. פתרון - תשעב סמ_ קיץ מועד א - שאלות פתוחות"}], "t": ["metrics", "knn", "tree", "nb", "perc", "svm", "kmeans", "ada", "nn"]}, {"y": 2012, "h": "תשעב", "s": "ג", "m": "ב", "f": [{"r": "q", "u": "exams/2012-C-B-q.pdf", "n": "8 - תשעב סמסטר קיץ - מועד ב - מבחן אמריקאי | 8-תשעב סמ_ קיץ מועד ב - שאלות פתוחות"}, {"r": "sol", "u": "exams/2012-C-B-sol.pdf", "n": "8 - תשעב סמ_ קיץ מועד ב - שאלות פתוחות -- פתרון"}], "t": ["metrics", "roc", "knn", "tree", "nb", "perc", "svm", "kmeans", "dbscan", "ada", "nn"]}, {"y": 2011, "h": "תשעא", "s": "ג", "m": "א", "f": [{"r": "q", "u": "exams/2011-C-A-q.pdf", "n": "3. תשעא סמסטר קיץ מועד א - שאלות פתוחות | 3. תשעא סמסטר קיץ מועדא - אמריקאי"}, {"r": "sol", "u": "exams/2011-C-A-sol.pdf", "n": "3. תשעא סמסטר קיץ - מועד א - שאלות פתוחות - פתרון"}], "t": ["knn", "tree", "nb", "perc", "svm"]}, {"y": 2011, "h": "תשעא", "s": "ג", "m": "ב", "f": [{"r": "q", "u": "exams/2011-C-B-q.pdf", "n": "4. תשעא - קיץ - מועד ב -שאלות פתוחות | 4.מבחן אמריקאי קיץ תשעא מועד ב"}, {"r": "sol", "u": "exams/2011-C-B-sol.pdf", "n": "4. תשעא סמסטר קיץ - מועד ב_ -שאלה פתוחה - פתרון"}], "t": ["knn", "tree", "nb", "perc", "svm", "nn"]}];
+const TOPIC_NAMES = { metrics: 'מדדי הערכה', roc: 'ROC', knn: 'KNN', tree: 'עץ החלטה', nb: 'בייס נאיבי', perc: 'פרספטרון', svm: 'SVM', kmeans: 'K-Means', dbscan: 'DBSCAN', ada: 'AdaBoost', nn: 'רשתות נוירונים' };
+const hebYear = h => h ? h.slice(0, -1) + '"' + h.slice(-1) : '';
+const fileLabel = f => {
+  const base = f.r === 'sol' ? 'פתרון' : f.r === 'appeal' ? 'השגות' : 'שאלון';
+  const part = /אמריקאי/.test(f.n) && /פתוח/.test(f.n) ? '' : /אמריקאי/.test(f.n) ? ' · אמריקאי' : /פתוח/.test(f.n) ? ' · פתוח' : '';
+  return base + part;
+};
+TOPICS.unshift({
+  id: 'bank', name: 'מאגר מבחנים', en: `${EXAMS.length} מבחנים, משנת 2011 עד 2026`, badge: EXAMS.length,
+  lede: 'כל המבחנים והפתרונות של הקורס. סננו לפי נושא כדי למצוא שאלות לתרגול, ולחצו על נושא בכרטיס כדי לפתוח את הכלי שפותר אותו. מבחנים מסומנים ב-★ טעונים מראש בכלים.',
+  body: `<div class="bankbar"><div class="chips" id="bk-t" style="margin:0"><span class="t">נושא:</span><button class="chip on" data-t="">הכל</button>${Object.entries(TOPIC_NAMES).map(([k, n]) => `<button class="chip" data-t="${k}">${n}</button>`).join('')}</div>
+    <div class="row2" style="max-width:420px"><label class="f">שנה<select id="bk-y"><option value="">כל השנים</option>${[...new Set(EXAMS.map(e => e.y))].map(y => `<option>${y}</option>`).join('')}</select></label>
+    <label class="f">סמסטר<select id="bk-s"><option value="">הכל</option><option value="א">א'</option><option value="ב">ב'</option><option value="ג">ג' / קיץ</option></select></label></div></div>
+    <p class="note" id="bk-c" style="margin:14px 0"></p><div class="bank" id="bk-l"></div>`,
+  mount(sec) {
+    let topic = '';
+    $('#bk-t', sec).addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; topic = b.dataset.t; $$('#bk-t .chip', sec).forEach(c => c.classList.toggle('on', c === b)); this.run(); });
+    $('#bk-l', sec).addEventListener('click', e => { const b = e.target.closest('[data-goto]'); if (!b) return; window.showTopic(b.dataset.goto); window.scrollTo({ top: 0 }); });
+    this.run = () => {
+      const y = $('#bk-y', sec).value, s = $('#bk-s', sec).value;
+      const list = EXAMS.filter(e => (!topic || e.t.includes(topic)) && (!y || String(e.y) === y) && (!s || e.s === s));
+      $('#bk-c', sec).textContent = `${list.length} מבחנים${topic ? ` עם שאלות על ${TOPIC_NAMES[topic]}` : ''}. הנושאים זוהו אוטומטית לפי מילות מפתח בטקסט — ייתכן שנושא מופיע רק כאפשרות תשובה.`;
+      let lastY = null;
+      $('#bk-l', sec).innerHTML = list.map(e => {
+        const head = e.y !== lastY ? `<h3 class="yr">${e.y}${e.h ? ` <span>${hebYear(e.h)}</span>` : ''}</h3>` : ''; lastY = e.y;
+        return head + `<article class="ex${e.ix ? ' ix' : ''}"><div class="exh"><b>סמסטר ${e.s === 'ג' ? "ג' (קיץ)" : e.s + "'"} · מועד ${e.m}'</b>${e.ix ? '<span class="pill" title="השאלות של המבחן הזה טעונות מראש בכלים">★ אינטראקטיבי</span>' : ''}</div>
+        <div class="files">${e.f.map(f => `<a href="${f.u}" target="_blank" rel="noopener" class="fl ${f.r}" title="${esc(f.n)}">${fileLabel(f)}</a>`).join('')}</div>
+        <div class="tags">${e.t.map(t => `<button class="tag${t === topic ? ' on' : ''}" data-goto="${t}">${TOPIC_NAMES[t]}</button>`).join('')}</div></article>`;
+      }).join('');
     };
   }
 });
@@ -1176,13 +1229,13 @@ TOPICS.push({
 (function boot() {
   const nav = $('#nav'), main = $('#main');
   const order = [...TOPICS];
-  nav.innerHTML = '<div class="lbl">נושאים · כמה מבחנים מתוך 7</div>' + order.map(t => `<button data-id="${t.id}"><span>${t.name}</span><span class="freq">${t.freq}/7</span></button>`).join('');
+  nav.innerHTML = '<div class="lbl">נושאים · כמה מבחנים מתוך 7</div>' + order.map(t => `<button data-id="${t.id}"><span>${t.name}</span><span class="freq">${t.badge ?? t.freq + '/7'}</span></button>`).join('');
   order.forEach(t => {
     const sec = document.createElement('section'); sec.className = 'topic'; sec.id = t.id; sec.hidden = true; sec.innerHTML = shell(t); main.appendChild(sec);
     t.mount(sec);
     sec.addEventListener('input', e => { if (!e.target.closest('.sub')) t.run(); });
     sec.addEventListener('change', () => t.run());
-    $$('.chip', sec).forEach(c => c.addEventListener('click', () => applyPreset(sec, t, +c.dataset.p)));
+    $$('.chip[data-p]', sec).forEach(c => c.addEventListener('click', () => applyPreset(sec, t, +c.dataset.p)));
     if (t.presets && t.presets.length) applyPreset(sec, t, 0); else t.run();
   });
   $$('textarea').forEach(t => t.dir = 'auto');
@@ -1193,11 +1246,11 @@ TOPICS.push({
     try { localStorage.setItem('ml-topic', id); } catch (e) { }
     if (location.hash.slice(1) !== id) history.replaceState(null, '', '#' + id);
   };
+  window.showTopic = show;
   nav.addEventListener('click', e => { const b = e.target.closest('button'); if (b) { show(b.dataset.id); if (window.innerWidth < 900) main.scrollIntoView({ block: 'start' }); } });
   let start = location.hash.slice(1); if (!start) { try { start = localStorage.getItem('ml-topic'); } catch (e) { } }
   show(start || TOPICS[0].id);
   window.addEventListener('hashchange', () => show(location.hash.slice(1)));
 })();
 </script>
-
 </body></html>
