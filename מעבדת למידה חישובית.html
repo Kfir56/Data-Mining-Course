@@ -1,0 +1,1203 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>מעבדת למידה חישובית</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=IBM+Plex+Sans+Hebrew:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a lab notebook — graph-paper ground, topic index on the side, each topic = formula strip + live workbench + exam traps */
+:root{
+  --paper:#f4f7fb; --sheet:#ffffff; --ink:#18213a; --muted:#5a6683; --line:#d9e1ec; --grid:rgba(47,91,211,.06);
+  --pen:#2f5bd3; --pen-soft:#e5ecfc; --mark:#ffe680; --mark-ink:#18213a; --red:#c3392e; --red-soft:#fbe7e5; --green:#1d7f55; --green-soft:#e1f3ea;
+  --k0:#2f5bd3; --k1:#d1495b; --k2:#1d8a5b; --k3:#c98a00; --k4:#7b4fc9;
+  --f-display:"Frank Ruhl Libre", "David", Georgia, serif;
+  --f-body:"IBM Plex Sans Hebrew", "Segoe UI", Arial, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0f1320; --sheet:#161c2c; --ink:#e4e9f4; --muted:#97a2bd; --line:#2a3349; --grid:rgba(127,162,255,.05);
+  --pen:#86a6ff; --pen-soft:#1f2a47; --mark:rgba(255,214,64,.30); --mark-ink:#fff6d6; --red:#ff7d70; --red-soft:#3a1f22; --green:#5fd39b; --green-soft:#16302a;
+  --k0:#86a6ff; --k1:#ff7d8b; --k2:#5fd39b; --k3:#f0b93a; --k4:#b79bff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0f1320; --sheet:#161c2c; --ink:#e4e9f4; --muted:#97a2bd; --line:#2a3349; --grid:rgba(127,162,255,.05);
+  --pen:#86a6ff; --pen-soft:#1f2a47; --mark:rgba(255,214,64,.30); --mark-ink:#fff6d6; --red:#ff7d70; --red-soft:#3a1f22; --green:#5fd39b; --green-soft:#16302a;
+  --k0:#86a6ff; --k1:#ff7d8b; --k2:#5fd39b; --k3:#f0b93a; --k4:#b79bff; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:22px 22px}
+.app{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:20px 60px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;padding-bottom:14px;border-bottom:2px solid var(--ink);margin-bottom:18px}
+header.top h1{font-family:var(--f-display);font-weight:900;font-size:clamp(28px,4.4vw,44px);line-height:1.05;margin:0;letter-spacing:-.01em;text-wrap:balance}
+header.top h1 span{color:var(--pen)}
+header.top p{margin:4px 0 0;color:var(--muted);max-width:60ch}
+.legend{font-size:13px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
+.legend b{font-family:var(--f-mono);color:var(--ink)}
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:22px;align-items:start}
+nav.index{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;flex-direction:column;gap:2px}
+nav.index .lbl{font-size:12px;letter-spacing:.06em;color:var(--muted);margin:0 8px 6px;font-weight:600}
+nav.index button{all:unset;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;font-weight:500}
+nav.index button:hover{background:var(--pen-soft)}
+nav.index button:focus-visible{outline:2px solid var(--pen);outline-offset:1px}
+nav.index button[aria-current="true"]{background:var(--ink);color:var(--paper)}
+nav.index .freq{font-family:var(--f-mono);font-size:11px;padding:1px 6px;border-radius:99px;border:1px solid currentColor;opacity:.75;white-space:nowrap}
+main{min-width:0}
+.topic{background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:22px clamp(16px,3vw,28px) 26px;box-shadow:0 1px 0 var(--line)}
+.topic h2{font-family:var(--f-display);font-weight:700;font-size:30px;margin:0;line-height:1.15}
+.topic h2 small{display:block;font-family:var(--f-body);font-size:14px;font-weight:500;color:var(--muted);letter-spacing:.02em;margin-top:2px}
+.lede{margin:6px 0 14px;color:var(--muted);max-width:70ch}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:16px}
+.chips .t{font-size:13px;color:var(--muted);margin-inline-end:4px}
+.chip{all:unset;cursor:pointer;font-size:13px;padding:4px 10px;border-radius:99px;border:1px solid var(--line);background:var(--paper);font-weight:500}
+.chip:hover{border-color:var(--pen);color:var(--pen)}
+.chip:focus-visible{outline:2px solid var(--pen)}
+.chip.on{background:var(--pen);border-color:var(--pen);color:var(--sheet)}
+.formula{display:flex;flex-wrap:wrap;gap:8px 22px;padding:12px 16px;border-radius:var(--r);background:var(--pen-soft);margin-bottom:18px;direction:ltr;justify-content:flex-end}
+.formula code{font-family:var(--f-mono);font-size:13.5px;white-space:nowrap}
+.bench{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:22px}
+.inputs{display:flex;flex-direction:column;gap:12px;min-width:0}
+.out{min-width:0;display:flex;flex-direction:column;gap:14px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600}
+label.f .hint{font-weight:400;color:var(--muted);font-size:12px}
+.row2{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px}
+textarea,input,select{font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:7px 9px;width:100%}
+textarea{font-family:var(--f-mono);font-size:13px;line-height:1.5;resize:vertical;min-height:120px}
+input[type=number],input.mono{font-family:var(--f-mono);direction:ltr;text-align:left}
+input[type=checkbox]{width:auto}
+textarea:focus,input:focus,select:focus{outline:2px solid var(--pen);outline-offset:0;border-color:transparent}
+.check{display:flex;gap:8px;align-items:center;font-size:13px;font-weight:500}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{all:unset;cursor:pointer;padding:7px 14px;border-radius:8px;background:var(--ink);color:var(--paper);font-weight:600;font-size:14px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:hover{opacity:.88}.btn:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+.btn[disabled]{opacity:.35;pointer-events:none}
+.verdict{border:2px solid var(--ink);border-radius:var(--r);padding:12px 16px;display:flex;flex-wrap:wrap;gap:6px 22px;align-items:baseline}
+.verdict .big{font-family:var(--f-display);font-size:24px;font-weight:700}
+.kv{display:flex;flex-direction:column}
+.kv span{font-size:12px;color:var(--muted)}
+.kv b{direction:ltr;text-align:right;unicode-bidi:isolate;font-family:var(--f-mono);font-size:18px;font-variant-numeric:tabular-nums}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r)}
+table{border-collapse:collapse;width:100%;font-size:13px;direction:ltr}
+th,td{padding:6px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap;font-variant-numeric:tabular-nums}
+th{font-weight:600;color:var(--muted);font-size:12px;background:var(--paper);position:sticky;top:0}
+td.m,td .m{font-family:var(--f-mono)}
+tr:last-child td{border-bottom:0}
+tr.hl td{background:var(--mark);color:var(--mark-ink)}
+tr.dim td{opacity:.45}
+.yes{color:var(--green);font-weight:700}.no{color:var(--red);font-weight:700}
+.pill{display:inline-block;padding:0 8px;border-radius:99px;font-size:12px;font-weight:600;border:1px solid currentColor}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;counter-reset:s}
+.steps li{padding:10px 14px;border-inline-start:3px solid var(--line);background:var(--paper);border-radius:0 8px 8px 0}
+.steps li.now{border-color:var(--pen);background:var(--pen-soft)}
+.math{font-family:var(--f-mono);font-size:13px;direction:ltr;unicode-bidi:isolate;display:inline-block}
+.mathblock{font-family:var(--f-mono);font-size:13px;direction:ltr;text-align:left;white-space:pre-wrap;overflow-x:auto;background:var(--paper);border-radius:8px;padding:10px 12px;line-height:1.7}
+.note{font-size:13.5px;padding:10px 14px;border-radius:8px;background:var(--mark);color:var(--mark-ink)}
+.warn{font-size:13.5px;padding:10px 14px;border-radius:8px;background:var(--red-soft);color:var(--ink);border-inline-start:3px solid var(--red)}
+details.traps{margin-top:22px;border-top:1px dashed var(--line);padding-top:12px}
+details.traps summary{cursor:pointer;font-weight:700;font-family:var(--f-display);font-size:19px}
+details.traps ul{margin:8px 0 0;padding-inline-start:20px;display:flex;flex-direction:column;gap:6px;max-width:75ch}
+.svgwrap{border:1px solid var(--line);border-radius:var(--r);background:var(--sheet);padding:6px;max-width:560px}
+.svgwrap svg{display:block;width:100%;height:auto}
+svg text{font-family:var(--f-mono);font-size:11px;fill:var(--muted)}
+.sub{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.sub button{all:unset;cursor:pointer;padding:7px 12px;font-weight:600;font-size:14px;border-bottom:2px solid transparent;margin-bottom:-1px;color:var(--muted)}
+.sub button[aria-selected="true"]{color:var(--ink);border-color:var(--pen)}
+.sub button:focus-visible{outline:2px solid var(--pen)}
+.cm{display:grid;grid-template-columns:auto 1fr 1fr;gap:4px;max-width:340px;direction:rtl}
+.cm div{padding:8px;border-radius:6px;text-align:center;font-size:12px}
+.cm .h{color:var(--muted);font-weight:600}
+.cm input{text-align:center;font-size:16px;font-weight:600}
+.cm .tp input,.cm .tn input{background:var(--green-soft)}.cm .fp input,.cm .fn input{background:var(--red-soft)}
+.cm .lab{font-size:11px;font-weight:700;letter-spacing:.04em;margin-bottom:2px;display:block}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card{border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card h3{margin:0;font-size:16px}
+.card details summary{cursor:pointer;color:var(--pen);font-weight:600;font-size:14px}
+.ltr{direction:ltr;unicode-bidi:isolate}
+@media (max-width:900px){.layout{grid-template-columns:1fr}
+  nav.index{position:static;flex-direction:row;overflow-x:auto;gap:4px;padding-bottom:6px}
+  nav.index .lbl{display:none}
+  nav.index button{white-space:nowrap;border:1px solid var(--line);background:var(--sheet)}
+  .bench{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:no-preference){.steps li,tr.hl td{transition:background .25s}}
+</style>
+<div class="app" dir="rtl" lang="he">
+  <header class="top">
+    <div>
+      <h1>מעבדת <span>למידה חישובית</span></h1>
+      <p>כל אלגוריתם שמופיע במבחני הקורס, עם השאלות האמיתיות טעונות מראש. משנים מספר והחישוב מתעדכן מיד, שלב אחרי שלב.</p>
+    </div>
+    <div class="legend"><span><b>ב'24 א'</b> = סמסטר ב' 2024, מועד א'</span><span><b>ש3</b> = שאלה 3</span><span>7 מבחנים: ב'24–ב'26, ג'25</span></div>
+  </header>
+  <div class="layout">
+    <nav class="index" id="nav" aria-label="נושאים"></nav>
+    <main id="main"></main>
+  </div>
+</div>
+<script>
+/* ===== Core math engine (no DOM) ===== */
+const ML = (() => {
+  const isPos = l => /^(p|1|\+1|\+|pos|positive|yes|y|כן|חיובי|משפיע)$/i.test(String(l).trim());
+  const parseNum = s => {
+    s = String(s).trim();
+    if (/^-?\d+(\.\d+)?-$/.test(s)) s = '-' + s.slice(0, -1); // "1-" from RTL copy
+    if (s.includes('/')) { const [a, b] = s.split('/'); return parseFloat(a) / parseFloat(b); }
+    return parseFloat(s);
+  };
+  const rows = text => text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#') && !l.startsWith('//'))
+    .map(l => l.replace(/[()\[\]]/g, ' ').split(/[\s,;\t]+/).filter(Boolean));
+  const fmt = (x, d = 4) => {
+    if (x === undefined || x === null || Number.isNaN(x)) return '—';
+    if (!isFinite(x)) return x > 0 ? '∞' : '−∞';
+    const r = +x.toFixed(d);
+    return (Object.is(r, -0) ? 0 : r).toString().replace('-', '−');
+  };
+  const toFrac = (x, maxDen = 240) => {
+    for (let q = 1; q <= maxDen; q++) { const p = Math.round(x * q); if (Math.abs(p / q - x) < 1e-9) return [p, q]; }
+    return null;
+  };
+  const frac = x => { const f = toFrac(x); if (!f || f[1] === 1) return fmt(x); return `${f[0] < 0 ? '−' : ''}${Math.abs(f[0])}/${f[1]}`; };
+  const mixed = x => {
+    const f = toFrac(x); if (!f || f[1] === 1) return fmt(x);
+    const s = f[0] < 0 ? '−' : ''; const p = Math.abs(f[0]), q = f[1];
+    const w = Math.floor(p / q), r = p % q;
+    return w ? `${s}${w} ${r}/${q}` : `${s}${r}/${q}`;
+  };
+  const log2 = x => Math.log(x) / Math.log(2);
+
+  /* ---------- metrics ---------- */
+  function metrics(TP, FN, FP, TN) {
+    const N = TP + FN + FP + TN;
+    const acc = (TP + TN) / N, prec = TP / (TP + FP), rec = TP / (TP + FN);
+    const f1 = 2 * prec * rec / (prec + rec), fpr = FP / (FP + TN), spec = TN / (FP + TN);
+    return { N, acc, prec, rec, f1, fpr, spec, tpr: rec };
+  }
+
+  /* ---------- ROC ---------- */
+  function rocFromScores(items) { // items: [{s, pos}]
+    const P = items.filter(i => i.pos).length, N = items.length - P;
+    const sorted = [...items].sort((a, b) => b.s - a.s);
+    const ths = [...new Set(sorted.map(i => i.s))];
+    const pts = [{ x: 0, y: 0, t: Infinity, tp: 0, fp: 0 }];
+    for (const t of ths) {
+      const tp = sorted.filter(i => i.s >= t && i.pos).length, fp = sorted.filter(i => i.s >= t && !i.pos).length;
+      pts.push({ x: fp / N, y: tp / P, t, tp, fp });
+    }
+    return { pts, P, N, sorted };
+  }
+  function auc(pts) { let a = 0; for (let i = 1; i < pts.length; i++) a += (pts[i].x - pts[i - 1].x) * (pts[i].y + pts[i - 1].y) / 2; return a; }
+  function eer(pts) { // point where FPR = FNR = 1-TPR
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1], b = pts[i];
+      const fa = a.x + a.y - 1, fb = b.x + b.y - 1;
+      if (fa === 0) return { x: a.x, y: a.y };
+      if (fa < 0 && fb >= 0) { const t = -fa / (fb - fa); return { x: a.x + t * (b.x - a.x), y: a.y + t * (b.y - a.y) }; }
+    }
+    const l = pts[pts.length - 1]; return { x: l.x, y: l.y };
+  }
+
+  /* ---------- distances ---------- */
+  function dist(a, b, metric) {
+    if (metric === 'L1') {
+      const d = a.reduce((s, v, i) => s + Math.abs(v - b[i]), 0);
+      return { d, expr: a.map((v, i) => `|${fmt(v)}−${fmt(b[i])}|`).join('+') };
+    }
+    const sq = a.reduce((s, v, i) => s + (v - b[i]) ** 2, 0);
+    return { d: Math.sqrt(sq), sq, expr: '√(' + a.map((v, i) => `(${fmt(v)}−${fmt(b[i])})²`).join('+') + `) = √${fmt(sq)}` };
+  }
+
+  /* ---------- KNN ---------- */
+  function knn(train, q, k, metric, zeroEps = 0.01) {
+    const list = train.map((t, i) => ({ i, x: t.x, label: t.label, ...dist(q, t.x, metric) }))
+      .sort((a, b) => a.d - b.d || a.i - b.i);
+    const top = list.slice(0, k);
+    const votes = {}, wvotes = {};
+    top.forEach(n => { votes[n.label] = (votes[n.label] || 0) + 1; wvotes[n.label] = (wvotes[n.label] || 0) + 1 / Math.max(n.d, zeroEps); });
+    const best = o => { const m = Math.max(...Object.values(o)); const w = Object.keys(o).filter(k => Math.abs(o[k] - m) < 1e-12); return { label: w.length > 1 ? null : w[0], tie: w }; };
+    const boundaryTie = k < list.length && Math.abs(list[k - 1].d - list[k].d) < 1e-12;
+    return { list, top, votes, wvotes, plain: best(votes), weighted: best(wvotes), boundaryTie };
+  }
+
+  /* ---------- entropy / IG ---------- */
+  function entropy(counts) {
+    const n = counts.reduce((a, b) => a + b, 0); if (!n) return 0;
+    return counts.reduce((s, c) => c ? s - (c / n) * log2(c / n) : s, 0);
+  }
+  function entropyExpr(counts) {
+    const n = counts.reduce((a, b) => a + b, 0);
+    const parts = counts.filter(c => c).map(c => `(${c}/${n})·log₂(${c}/${n})`);
+    if (parts.length <= 1) return '0';
+    return '−' + parts.join(' − ');
+  }
+  function infoGain(data, featIdx, targetIdx, weightIdx = -1) {
+    const w = r => weightIdx >= 0 ? parseNum(r[weightIdx]) : 1;
+    const classes = [...new Set(data.map(r => r[targetIdx]))];
+    const cnt = sub => classes.map(c => sub.filter(r => r[targetIdx] === c).reduce((s, r) => s + w(r), 0));
+    const total = data.reduce((s, r) => s + w(r), 0);
+    const HS = entropy(cnt(data));
+    const values = [...new Set(data.map(r => r[featIdx]))];
+    const parts = values.map(v => {
+      const sub = data.filter(r => r[featIdx] === v); const c = cnt(sub); const n = c.reduce((a, b) => a + b, 0);
+      return { v, counts: c, n, H: entropy(c), expr: entropyExpr(c) };
+    });
+    const cond = parts.reduce((s, p) => s + p.n / total * p.H, 0);
+    return { classes, total, HS, HSexpr: entropyExpr(cnt(data)), rootCounts: cnt(data), parts, cond, ig: HS - cond };
+  }
+
+  /* ---------- Naive Bayes ---------- */
+  function naiveBayes(data, headers, targetIdx, weightIdx, query, opt) {
+    // query: {colIdx: value}; opt: {m, p (null=1/|V|), mode: 'zero'|'all'|'none'}
+    const w = r => weightIdx >= 0 ? parseNum(r[weightIdx]) : 1;
+    const classes = [...new Set(data.map(r => r[targetIdx]))];
+    const total = data.reduce((s, r) => s + w(r), 0);
+    const out = classes.map(c => {
+      const sub = data.filter(r => r[targetIdx] === c); const nc = sub.reduce((s, r) => s + w(r), 0);
+      const prior = nc / total;
+      const terms = Object.entries(query).map(([fi, v]) => {
+        fi = +fi;
+        const nv = sub.filter(r => r[fi] === v).reduce((s, r) => s + w(r), 0);
+        const V = new Set(data.map(r => r[fi])).size;
+        const p = opt.p == null || opt.p === '' || isNaN(opt.p) ? 1 / V : +opt.p;
+        const smooth = opt.mode === 'all' || (opt.mode === 'zero' && nv === 0);
+        const prob = smooth ? (nv + opt.m * p) / (nc + opt.m) : nv / nc;
+        return { f: headers[fi], v, nv, nc, prob, smooth, m: opt.m, p };
+      });
+      const score = terms.reduce((s, t) => s * t.prob, prior);
+      return { c, nc, prior, terms, score };
+    });
+    const Z = out.reduce((s, o) => s + o.score, 0);
+    out.forEach(o => o.post = Z ? o.score / Z : NaN);
+    return { classes, total, out };
+  }
+
+  /* ---------- Perceptron ---------- */
+  function perceptron(X, Y, opt) {
+    // X: number[][], Y: bool, opt: {init:number[]|number, bias:bool, biasInit, epochs, rule:'ge'|'gt'}
+    const d = X[0].length;
+    let w = Array.isArray(opt.init) && opt.init.length === d ? [...opt.init] : Array(d).fill(+opt.init);
+    if (opt.bias) w = [+opt.biasInit, ...w];
+    const aug = x => opt.bias ? [1, ...x] : x;
+    const pred = (w, x) => { const net = w.reduce((s, wi, i) => s + wi * x[i], 0); return { net, p: opt.rule === 'gt' ? net > 0 : net >= 0 }; };
+    const steps = [];
+    for (let e = 1; e <= opt.epochs; e++) {
+      X.forEach((x0, i) => {
+        const x = aug(x0); const { net, p } = pred(w, x); const before = [...w];
+        let upd = 0; if (p && !Y[i]) upd = -1; else if (!p && Y[i]) upd = 1;
+        if (upd) w = w.map((wi, j) => wi + upd * x[j]);
+        steps.push({ epoch: e, i, x, before, net, pred: p, y: Y[i], upd, after: [...w] });
+      });
+    }
+    const classify = x0 => pred(w, aug(x0));
+    return { steps, w, classify, aug };
+  }
+
+  /* ---------- SVM ---------- */
+  function svmW(sv) { // sv: [{x, y(±1), a}]
+    const d = sv[0].x.length; const w = Array(d).fill(0);
+    sv.forEach(s => s.x.forEach((v, j) => w[j] += s.a * s.y * v));
+    return w;
+  }
+  function solveLinear(A, b) { // gaussian elimination
+    const n = A.length; const M = A.map((r, i) => [...r, b[i]]);
+    for (let c = 0; c < n; c++) {
+      let piv = c; for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[piv][c])) piv = r;
+      if (Math.abs(M[piv][c]) < 1e-12) return null;
+      [M[c], M[piv]] = [M[piv], M[c]];
+      for (let r = 0; r < n; r++) if (r !== c) { const f = M[r][c] / M[c][c]; for (let k = c; k <= n; k++) M[r][k] -= f * M[c][k]; }
+    }
+    return M.map((r, i) => r[n] / r[i]);
+  }
+  function svmFromSV(pts) { // pts: [{x, y}], requires d+1 points → w·x + b = y
+    const d = pts[0].x.length;
+    const sol = solveLinear(pts.map(p => [...p.x, 1]), pts.map(p => p.y));
+    if (!sol) return null;
+    return { w: sol.slice(0, d), b: sol[d] };
+  }
+  function kernel(type, a, b, gamma, deg, c0) {
+    if (type === 'rbf') { const sq = a.reduce((s, v, i) => s + (v - b[i]) ** 2, 0); return { k: Math.exp(-gamma * sq), sq }; }
+    const dot = a.reduce((s, v, i) => s + v * b[i], 0);
+    if (type === 'poly') return { k: (dot + c0) ** deg, dot };
+    return { k: dot, dot };
+  }
+
+  /* ---------- K-Means ---------- */
+  function kmeans(points, centers, maxIter = 20) {
+    const iters = []; let C = centers.map(c => [...c]);
+    for (let it = 1; it <= maxIter; it++) {
+      const assign = points.map(p => {
+        const ds = C.map(c => Math.sqrt(p.reduce((s, v, j) => s + (v - c[j]) ** 2, 0)));
+        let best = 0; ds.forEach((d, j) => { if (d < ds[best] - 1e-12) best = j; });
+        return { ds, best };
+      });
+      const newC = C.map((c, j) => {
+        const mem = points.filter((_, i) => assign[i].best === j);
+        if (!mem.length) return [...c];
+        return c.map((_, k) => mem.reduce((s, p) => s + p[k], 0) / mem.length);
+      });
+      const distortion = points.reduce((s, p, i) => s + p.reduce((t, v, k) => t + (v - newC[assign[i].best][k]) ** 2, 0), 0);
+      const prevAssign = iters.length ? iters[iters.length - 1].assign.map(a => a.best).join() : null;
+      iters.push({ it, centersBefore: C, assign, centersAfter: newC, distortion });
+      C = newC;
+      if (prevAssign === assign.map(a => a.best).join()) { iters[iters.length - 1].converged = true; break; }
+    }
+    return iters;
+  }
+  function distortion(clusters) {
+    return clusters.map(cl => {
+      const d = cl[0].length; const c = Array(d).fill(0).map((_, k) => cl.reduce((s, p) => s + p[k], 0) / cl.length);
+      const terms = cl.map(p => ({ p, sq: p.reduce((s, v, k) => s + (v - c[k]) ** 2, 0) }));
+      return { centroid: c, terms, sse: terms.reduce((s, t) => s + t.sq, 0) };
+    });
+  }
+
+  /* ---------- DBSCAN ---------- */
+  function dbscan(points, r, minPts, metric = 'L2', startIdx = 0) {
+    const D = (a, b) => metric === 'L1' ? a.reduce((s, v, i) => s + Math.abs(v - b[i]), 0) : Math.sqrt(a.reduce((s, v, i) => s + (v - b[i]) ** 2, 0));
+    const nb = points.map((p, i) => points.map((q, j) => j).filter(j => j !== i && D(points[i], points[j]) <= r + 1e-9));
+    const core = nb.map(n => n.length >= minPts);
+    const cluster = Array(points.length).fill(-1); let cid = 0;
+    const order = [startIdx, ...points.map((_, i) => i).filter(i => i !== startIdx)];
+    for (const i of order) {
+      if (cluster[i] !== -1 || !core[i]) continue;
+      const q = [i]; cluster[i] = cid;
+      while (q.length) { const c = q.shift(); if (!core[c]) continue; for (const j of nb[c]) if (cluster[j] === -1) { cluster[j] = cid; q.push(j); } }
+      cid++;
+    }
+    const type = points.map((_, i) => core[i] ? 'core' : cluster[i] >= 0 ? 'border' : 'noise');
+    return { nb, core, cluster, type, nClusters: cid };
+  }
+
+  /* ---------- AdaBoost ---------- */
+  function adaboost(N, rounds, init) {
+    let w = init && init.length === N ? [...init] : Array(N).fill(1 / N);
+    const out = [];
+    rounds.forEach((wrong, t) => {
+      const W = new Set(wrong);
+      const eps = w.reduce((s, wi, i) => W.has(i) ? s + wi : s, 0);
+      const alpha = 0.5 * Math.log((1 - eps) / eps);
+      const raw = w.map((wi, i) => wi * Math.exp(W.has(i) ? alpha : -alpha));
+      const Z = raw.reduce((a, b) => a + b, 0);
+      const next = raw.map(x => x / Z);
+      out.push({ t: t + 1, before: w, wrong: [...W], eps, alpha, raw, Z, after: next });
+      w = next;
+    });
+    return out;
+  }
+
+  /* ---------- NN forward ---------- */
+  const act = {
+    step: x => x >= 0 ? 1 : 0,
+    sign: x => x >= 0 ? 1 : -1,
+    linear: x => x,
+    sigmoid: x => 1 / (1 + Math.exp(-x)),
+    relu: x => Math.max(0, x)
+  };
+  function forward(layers, input, a) {
+    let cur = input; const trace = [];
+    layers.forEach((L, li) => {
+      const outs = L.map(n => { const net = n.w.reduce((s, wi, i) => s + wi * (cur[i] ?? 0), 0) + (n.b || 0); return { net, out: act[a](net), n }; });
+      trace.push({ inputs: cur, outs }); cur = outs.map(o => o.out);
+    });
+    return trace;
+  }
+
+  return { isPos, parseNum, rows, fmt, frac, mixed, toFrac, log2, metrics, rocFromScores, auc, eer, dist, knn, entropy, entropyExpr, infoGain, naiveBayes, perceptron, svmW, svmFromSV, solveLinear, kernel, kmeans, distortion, dbscan, adaboost, forward };
+})();
+
+</script><script>
+/* ===== UI helpers ===== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const F = ML.fmt, FR = ML.frac;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const vec = a => '<bdi dir="ltr">(' + a.map(v => F(v)).join(', ') + ')</bdi>';
+const vecF = a => '<bdi dir="ltr">(' + a.map(v => ML.mixed(v)).join(', ') + ')</bdi>';
+const numRows = t => ML.rows(t).map(r => r.map(ML.parseNum));
+const tbl = (head, body, cls = '') => `<div class="tbl ${cls}"><table><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${body.join('')}</tbody></table></div>`;
+const kv = (k, v) => `<div class="kv"><span><bdi>${k}</bdi></span><b>${v}</b></div>`;
+const kcol = i => `var(--k${i % 5})`;
+const posLbl = b => b ? '<span class="yes">P</span>' : '<span class="no">N</span>';
+
+function niceStep(span) { const c = [0.1, 0.2, 0.25, 0.5, 1, 2, 5, 10, 20, 25, 50, 100, 200, 500]; return c.find(s => span / s <= 10) || 1000; }
+function plot(o) {
+  const W = 460, H = 360, pad = 30;
+  const xs = [], ys = [];
+  (o.pts || []).forEach(p => { xs.push(p.x); ys.push(p.y); });
+  (o.centers || []).forEach(p => { xs.push(p.x); ys.push(p.y); });
+  (o.circles || []).forEach(c => { xs.push(c.x - c.r, c.x + c.r); ys.push(c.y - c.r, c.y + c.r); });
+  let x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  if (o.bounds) [x0, x1, y0, y1] = o.bounds;
+  const m = Math.max(x1 - x0, y1 - y0) * 0.08 || 1; x0 -= m; x1 += m; y0 -= m; y1 += m;
+  const s = Math.min((W - 2 * pad) / (x1 - x0), (H - 2 * pad) / (y1 - y0));
+  const ox = pad + ((W - 2 * pad) - s * (x1 - x0)) / 2, oy = pad + ((H - 2 * pad) - s * (y1 - y0)) / 2;
+  const X = x => ox + (x - x0) * s, Y = y => H - (oy + (y - y0) * s);
+  let g = '';
+  const st = niceStep(Math.max(x1 - x0, y1 - y0));
+  for (let v = Math.ceil(x0 / st) * st; v <= x1; v += st) g += `<line x1="${X(v)}" x2="${X(v)}" y1="${Y(y0)}" y2="${Y(y1)}" style="stroke:var(--line)" stroke-width="${Math.abs(v) < 1e-9 ? 1.6 : .7}"/><text x="${X(v)}" y="${H - 8}" text-anchor="middle">${F(v, 2)}</text>`;
+  for (let v = Math.ceil(y0 / st) * st; v <= y1; v += st) g += `<line y1="${Y(v)}" y2="${Y(v)}" x1="${X(x0)}" x2="${X(x1)}" style="stroke:var(--line)" stroke-width="${Math.abs(v) < 1e-9 ? 1.6 : .7}"/><text x="${pad - 6}" y="${Y(v) + 4}" text-anchor="end">${F(v, 2)}</text>`;
+  (o.lines || []).forEach(L => { // a x + b y + c = 0
+    let p = [];
+    if (Math.abs(L.b) > 1e-12) { p = [[x0, -(L.a * x0 + L.c) / L.b], [x1, -(L.a * x1 + L.c) / L.b]]; }
+    else p = [[-L.c / L.a, y0], [-L.c / L.a, y1]];
+    g += `<line x1="${X(p[0][0])}" y1="${Y(p[0][1])}" x2="${X(p[1][0])}" y2="${Y(p[1][1])}" style="stroke:${L.color || 'var(--ink)'}" stroke-width="${L.w || 2}" ${L.dash ? 'stroke-dasharray="5 5"' : ''}/>`;
+  });
+  (o.circles || []).forEach(c => g += `<circle cx="${X(c.x)}" cy="${Y(c.y)}" r="${c.r * s}" style="fill:${c.fill || 'var(--pen-soft)'};stroke:${c.color || 'var(--pen)'}" fill-opacity=".5" stroke-dasharray="4 3"/>`);
+  (o.trails || []).forEach(t => g += `<line x1="${X(t[0].x)}" y1="${Y(t[0].y)}" x2="${X(t[1].x)}" y2="${Y(t[1].y)}" style="stroke:${t[2]}" stroke-width="1.5" stroke-dasharray="3 3"/>`);
+  (o.pts || []).forEach(p => {
+    const cx = X(p.x), cy = Y(p.y), r = p.r || 6, col = p.color || 'var(--muted)';
+    if (p.shape === 'x') g += `<path d="M${cx - 5} ${cy - 5}L${cx + 5} ${cy + 5}M${cx + 5} ${cy - 5}L${cx - 5} ${cy + 5}" style="stroke:${col}" stroke-width="2.2"/>`;
+    else if (p.shape === 'tri') g += `<path d="M${cx} ${cy - r - 1}L${cx + r} ${cy + r - 1}L${cx - r} ${cy + r - 1}Z" style="fill:${col}"/>`;
+    else if (p.shape === 'ring') g += `<circle cx="${cx}" cy="${cy}" r="${r}" style="fill:var(--sheet);stroke:${col}" stroke-width="2.4"/>`;
+    else g += `<circle cx="${cx}" cy="${cy}" r="${r}" style="fill:${col};stroke:var(--sheet)" stroke-width="1.2"/>`;
+    if (p.hl) g += `<circle cx="${cx}" cy="${cy}" r="${r + 5}" style="fill:none;stroke:var(--ink)" stroke-width="1.6"/>`;
+    if (p.label != null) g += `<text x="${cx + 8}" y="${cy - 7}" style="fill:var(--ink)">${esc(p.label)}</text>`;
+  });
+  (o.centers || []).forEach(c => g += `<g><rect x="${X(c.x) - 9}" y="${Y(c.y) - 9}" width="18" height="18" rx="3" style="fill:var(--sheet);stroke:${c.color}" stroke-width="2"/><path d="M${X(c.x) - 5} ${Y(c.y) - 5}L${X(c.x) + 5} ${Y(c.y) + 5}M${X(c.x) + 5} ${Y(c.y) - 5}L${X(c.x) - 5} ${Y(c.y) + 5}" style="stroke:${c.color}" stroke-width="2.4"/></g>`);
+  return `<div class="svgwrap"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.aria || 'גרף')}">${g}</svg></div>`;
+}
+
+/* exam labels */
+const EX = { b24a: "ב'24 א'", b24b: "ב'24 ב'", b25a: "ב'25 א'", b25b: "ב'25 ב'", b26a: "ב'26 א'", c25a: "ג'25 א'", c25b: "ג'25 ב'" };
+const exl = (e, q) => `${EX[e]} · ש${q}`;
+
+function shell(t) {
+  return `<h2>${t.name}<small>${t.en}</small></h2>
+  <p class="lede">${t.lede}</p>
+  ${t.presets && t.presets.length ? `<div class="chips"><span class="t">טען שאלה ממבחן:</span>${t.presets.map((p, i) => `<button class="chip" data-p="${i}" title="${esc(p.title || '')}">${p.label}</button>`).join('')}</div>` : ''}
+  ${t.formula ? `<div class="formula">${t.formula.map(f => `<code>${f}</code>`).join('')}</div>` : ''}
+  ${t.body}
+  ${t.traps ? `<details class="traps" open><summary>מלכודות ודגשים למבחן</summary><ul>${t.traps.map(x => `<li>${x}</li>`).join('')}</ul></details>` : ''}`;
+}
+function applyPreset(sec, t, i) {
+  const p = t.presets[i];
+  if (p.sub && t.setSub) t.setSub(p.sub);
+  Object.entries(p.v).forEach(([id, val]) => { const el = sec.querySelector('#' + id); if (!el) return; if (el.type === 'checkbox') el.checked = !!val; else el.value = val; });
+  if (t.afterPreset) t.afterPreset(p);
+  $$('.chip', sec).forEach(c => c.classList.toggle('on', +c.dataset.p === i));
+  const nt = sec.querySelector('.pnote'); if (nt) { nt.innerHTML = p.note || ''; nt.hidden = !p.note; }
+  t.run();
+}
+function subTabs(sec, t, names) {
+  const bar = sec.querySelector('.sub'); if (!bar) return;
+  bar.innerHTML = names.map(([k, n]) => `<button role="tab" data-k="${k}">${n}</button>`).join('');
+  t.setSub = k => { t.sub = k; $$('button', bar).forEach(b => b.setAttribute('aria-selected', b.dataset.k === k)); $$('[data-pane]', sec).forEach(p => p.hidden = p.dataset.pane !== k); };
+  bar.addEventListener('click', e => { const b = e.target.closest('button'); if (b) { t.setSub(b.dataset.k); t.run(); } });
+  t.setSub(names[0][0]);
+}
+
+/* ================= TOPICS ================= */
+const TOPICS = [];
+
+/* ---------- 1. Metrics ---------- */
+TOPICS.push({
+  id: 'metrics', name: 'מדדי הערכה', en: 'Confusion Matrix', freq: 5,
+  lede: 'מכניסים את ארבעת התאים ומקבלים כל מדד עם ההצבה המלאה. שורות = המציאות, עמודות = החיזוי, כמו בטבלאות במבחן.',
+  formula: ['Accuracy = (TP+TN)/N', 'Precision = TP/(TP+FP)', 'Recall = TPR = TP/(TP+FN)', 'FPR = FP/(FP+TN)', 'F1 = 2·P·R/(P+R)'],
+  presets: [
+    { label: exl('b24b', 1), v: { 'm-tp': 50, 'm-fn': 20, 'm-fp': 120, 'm-tn': 10 } },
+    { label: exl('b25b', 1), v: { 'm-tp': 105, 'm-fn': 33, 'm-fp': 78, 'm-tn': 102 } },
+    { label: exl('c25a', 1), v: { 'm-tp': 25, 'm-fn': 33, 'm-fp': 78, 'm-tn': 102 } },
+    { label: exl('b26a', 8), v: { 'm-tp': 55, 'm-fn': 22, 'm-fp': 123, 'm-tn': 71 } }
+  ],
+  body: `<div class="bench"><div class="inputs">
+    <div class="cm"><div></div><div class="h">חזוי P</div><div class="h">חזוי N</div>
+    <div class="h">בפועל P</div><div class="tp"><span class="lab yes">TP</span><input id="m-tp" type="number" min="0" value="50"></div><div class="fn"><span class="lab no">FN</span><input id="m-fn" type="number" min="0" value="20"></div>
+    <div class="h">בפועל N</div><div class="fp"><span class="lab no">FP</span><input id="m-fp" type="number" min="0" value="120"></div><div class="tn"><span class="lab yes">TN</span><input id="m-tn" type="number" min="0" value="10"></div></div>
+    <p class="note">טיפ: Precision מסתכל על <b>עמודת</b> "חזוי P". Recall מסתכל על <b>שורת</b> "בפועל P".</p>
+  </div><div class="out" id="m-out"></div></div>`,
+  traps: ['בדקו תמיד איך הטבלה מסודרת: אצלנו השורות הן "בפועל" והעמודות "חיזוי". אם הפוכים — FP ו-FN מתחלפים.',
+    'F1 הוא ממוצע הרמוני של Precision ו-Recall ולכן תמיד בין 0 ל-1 (תשובות "גדול מ-1" נפסלות מיד).',
+    'TPR = Recall = Sensitivity. FPR = 1 − Specificity. אלה הצירים של גרף ה-ROC.',
+    'בשאלות "מה גדול ממה" חשבו את שלושת המספרים בנפרד ורק אז השוו, אל תסמכו על אינטואיציה.'],
+  mount(sec) { this.run = () => {
+    const g = id => +sec.querySelector('#' + id).value || 0;
+    const TP = g('m-tp'), FN = g('m-fn'), FP = g('m-fp'), TN = g('m-tn'); const m = ML.metrics(TP, FN, FP, TN);
+    const cmp = (a, an, b, bn) => `${an} ${Math.abs(a - b) < 1e-9 ? '=' : a > b ? '>' : '<'} ${bn}`;
+    $('#m-out', sec).innerHTML = `<div class="verdict">${kv('Accuracy', F(m.acc, 3))}${kv('Precision', F(m.prec, 3))}${kv('Recall / TPR', F(m.rec, 3))}${kv('F1', F(m.f1, 3))}${kv('FPR', F(m.fpr, 3))}</div>
+    <div class="mathblock">N = ${TP}+${FN}+${FP}+${TN} = ${m.N}
+Accuracy  = (TP+TN)/N   = (${TP}+${TN})/${m.N} = ${TP + TN}/${m.N} = ${F(m.acc)}
+Precision = TP/(TP+FP)  = ${TP}/(${TP}+${FP}) = ${TP}/${TP + FP} = ${F(m.prec)}
+Recall    = TP/(TP+FN)  = ${TP}/(${TP}+${FN}) = ${TP}/${TP + FN} = ${F(m.rec)}
+FPR       = FP/(FP+TN)  = ${FP}/(${FP}+${TN}) = ${FP}/${FP + TN} = ${F(m.fpr)}
+F1        = 2·${F(m.prec)}·${F(m.rec)}/(${F(m.prec)}+${F(m.rec)}) = ${F(m.f1)}</div>
+    <div class="note ltr" style="text-align:left">${cmp(m.acc, 'Accuracy', m.rec, 'Recall')} &nbsp;·&nbsp; ${cmp(m.rec, 'Recall', m.prec, 'Precision')} &nbsp;·&nbsp; ${cmp(m.acc, 'Accuracy', m.prec, 'Precision')}</div>`;
+  }; }
+});
+
+/* ---------- 2. ROC ---------- */
+TOPICS.push({
+  id: 'roc', name: 'עקומת ROC', en: 'AUC · EER', freq: 6,
+  lede: 'שני מצבים: רשימת ציונים (מחשבים את העקומה בעצמנו) או נקודות שקוראים מהגרף. גררו את הסליידר כדי לראות מה קורה בכל ערך סף.',
+  formula: ['AUC = Σ (FPRᵢ − FPRᵢ₋₁) · (TPRᵢ + TPRᵢ₋₁)/2', 'EER: הנקודה שבה FPR = FNR = 1 − TPR'],
+  presets: [
+    { label: exl('b25b', 5), sub: 'scores', v: { 'r-sc': '95 P\n90 P\n84 N\n82 P\n78 P\n45 N\n30 P\n5 N' } },
+    { label: exl('b24b', 2), sub: 'pts', v: { 'r-pt': '0 0\n0 0.8\n0.2 0.8\n0.2 0.9\n0.4 0.9\n0.4 1\n1 1', 'r-P': '', 'r-N': '' } },
+    { label: exl('b24a', 3), sub: 'pts', v: { 'r-pt': '0 0\n0 0.3\n0.4 0.3\n0.4 0.5\n0.8 0.5\n0.8 0.8\n0.9 0.8\n0.9 1\n1 1', 'r-P': '', 'r-N': '' } },
+    { label: exl('c25b', 5), sub: 'pts', v: { 'r-pt': '0 0\n0 0.8\n0.2 0.8\n0.2 0.9\n0.4 0.9\n0.4 1\n1 1', 'r-P': 100, 'r-N': 200 }, note: 'עם 100 חיוביות ו-200 שליליות אפשר לתרגם כל נקודה בגרף למספרים מוחלטים (TP, FP) ולחשב Precision.' },
+    { label: exl('b25a', 1), sub: 'pts', v: { 'r-pt': '0 0\n0 0.8\n0.2 0.8\n0.2 0.9\n0.4 0.9\n0.4 1\n1 1', 'r-P': 100, 'r-N': 200 }, note: 'כדי לבדוק אם confusion matrix "אפשרית": חשבו את ה-TPR וה-FPR שלה ובדקו שהנקודה יושבת על העקומה. למשל TP=100, FP=100 → (FPR 0.5, TPR 1) נמצאת על הקו העליון.' }
+  ],
+  body: `<div class="sub" role="tablist"></div><p class="note pnote" hidden></p>
+  <div class="bench"><div class="inputs">
+    <div data-pane="scores"><label class="f">ציון ותיוג אמיתי, שורה לכל דוגמה<span class="hint">לדוגמה: <span class="ltr">95 P</span>. מסווג P אם הציון ≥ הסף.</span><textarea id="r-sc" rows="9">95 P
+90 P
+84 N
+82 P
+78 P
+45 N
+30 P
+5 N</textarea></label></div>
+    <div data-pane="pts"><label class="f">נקודות על העקומה: FPR TPR<span class="hint">קראו את פינות המדרגות מהגרף לפי הסדר</span><textarea id="r-pt" rows="9"></textarea></label>
+      <div class="row2"><label class="f">מס' חיוביות (P)<input id="r-P" type="number" placeholder="לא חובה"></label><label class="f">מס' שליליות (N)<input id="r-N" type="number" placeholder="לא חובה"></label></div></div>
+    <label class="f">נקודה על העקומה: <span id="r-tl" class="ltr"></span><input id="r-th" type="range" min="0" max="8" value="3"></label>
+  </div><div class="out" id="r-out"></div></div>`,
+  traps: ['AUC הוא שטח מתחת לעקומה (בין 0 ל-1). EER הוא ערך על ציר ה-FPR, בנקודה שבה העקומה חותכת את האלכסון המשני (FPR + TPR = 1).',
+    'מסווג אקראי: AUC = 0.5 ו-EER = 0.5. מסווג מושלם: AUC = 1, EER = 0.',
+    'בעקומת מדרגות: חשבו AUC כסכום מלבנים — רוחב כל מדרגה אופקית כפול הגובה שלה.',
+    'בבניית עקומה מציונים: כל שורה חיובית מזיזה למעלה ב-1/P, כל שלילית ימינה ב-1/N.',
+    'Precision בנקודה = TP/(TP+FP) — צריך מספרים מוחלטים, לכן חייבים את כמות החיוביות והשליליות.'],
+  mount(sec) {
+    subTabs(sec, this, [['scores', 'מרשימת ציונים'], ['pts', 'מנקודות בגרף']]);
+    this.setSub('scores');
+    this.run = () => {
+      let pts, rowsHtml = '', P = 0, N = 0, sorted;
+      if (this.sub === 'scores') {
+        const items = ML.rows($('#r-sc', sec).value).filter(r => r.length >= 2).map(r => ({ s: ML.parseNum(r[0]), pos: ML.isPos(r[1]) }));
+        if (!items.length) return; const R = ML.rocFromScores(items); pts = R.pts; P = R.P; N = R.N; sorted = R.sorted;
+      } else {
+        pts = numRows($('#r-pt', sec).value).filter(r => r.length >= 2).map(r => ({ x: r[0], y: r[1] }));
+        P = +$('#r-P', sec).value || 0; N = +$('#r-N', sec).value || 0;
+        if (pts.length < 2) return;
+      }
+      const sl = $('#r-th', sec); sl.max = pts.length - 1; if (+sl.value > pts.length - 1) sl.value = pts.length - 1;
+      const k = +sl.value, cur = pts[k];
+      const A = ML.auc(pts), E = ML.eer(pts);
+      $('#r-tl', sec).textContent = this.sub === 'scores' ? (cur.t === Infinity ? 'סף מעל כל הציונים' : `סף = ${F(cur.t)}`) : `נקודה ${k + 1}`;
+      // svg
+      const W = 360, H = 360, p = 34, S = W - 2 * p, X = x => p + x * S, Y = y => H - p - y * S;
+      let g = '';
+      for (let i = 0; i <= 10; i++) { const v = i / 10; g += `<line x1="${X(v)}" x2="${X(v)}" y1="${Y(0)}" y2="${Y(1)}" style="stroke:var(--line)" stroke-width=".7"/><line y1="${Y(v)}" y2="${Y(v)}" x1="${X(0)}" x2="${X(1)}" style="stroke:var(--line)" stroke-width=".7"/>`; if (i % 2 === 0) g += `<text x="${X(v)}" y="${H - p + 16}" text-anchor="middle">${v}</text><text x="${p - 6}" y="${Y(v) + 4}" text-anchor="end">${v}</text>`; }
+      g += `<path d="M${X(0)} ${Y(0)} ${pts.map(q => `L${X(q.x)} ${Y(q.y)}`).join(' ')} L${X(pts[pts.length - 1].x)} ${Y(0)}Z" style="fill:var(--pen)" fill-opacity=".14"/>`;
+      g += `<line x1="${X(0)}" y1="${Y(0)}" x2="${X(1)}" y2="${Y(1)}" style="stroke:var(--muted)" stroke-dasharray="4 4"/>`;
+      g += `<line x1="${X(0)}" y1="${Y(1)}" x2="${X(1)}" y2="${Y(0)}" style="stroke:var(--k3)" stroke-dasharray="2 4"/>`;
+      g += `<polyline points="${pts.map(q => `${X(q.x)},${Y(q.y)}`).join(' ')}" style="fill:none;stroke:var(--red)" stroke-width="3" stroke-linejoin="round"/>`;
+      pts.forEach((q, i) => g += `<circle cx="${X(q.x)}" cy="${Y(q.y)}" r="${i === k ? 7 : 3.5}" style="fill:${i === k ? 'var(--ink)' : 'var(--red)'};stroke:var(--sheet)" stroke-width="1.5"/>`);
+      g += `<circle cx="${X(E.x)}" cy="${Y(E.y)}" r="6" style="fill:none;stroke:var(--k3)" stroke-width="2.5"/><text x="${X(E.x) + 9}" y="${Y(E.y) + 16}" style="fill:var(--k3)">EER</text>`;
+      g += `<text x="${X(1)}" y="${H - 6}" text-anchor="end">FPR</text><text x="${p}" y="${p - 10}" text-anchor="middle">TPR</text>`;
+      const svg = `<div class="svgwrap" style="max-width:400px"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="עקומת ROC">${g}</svg></div>`;
+      // area breakdown
+      const parts = []; for (let i = 1; i < pts.length; i++) { const dx = pts[i].x - pts[i - 1].x; if (dx > 1e-12) parts.push(`${FR(dx)}×${pts[i].y === pts[i - 1].y ? FR(pts[i].y) : `(${FR(pts[i - 1].y)}+${FR(pts[i].y)})/2`}`); }
+      let ptTable;
+      if (this.sub === 'scores') {
+        rowsHtml = sorted.map((it, i) => `<tr class="${cur.t !== Infinity && it.s >= cur.t ? 'hl' : ''}"><td class="m">${i + 1}</td><td class="m">${F(it.s)}</td><td>${posLbl(it.pos)}</td><td>${cur.t !== Infinity && it.s >= cur.t ? 'P' : 'N'}</td></tr>`);
+        ptTable = tbl(['#', 'ציון', 'אמת', 'חיזוי בסף הנוכחי'], rowsHtml);
+      }
+      const tp = P ? Math.round(cur.y * P) : null, fp = N ? Math.round(cur.x * N) : null;
+      const curInfo = `<div class="verdict">${kv('AUC', `${F(A)}${ML.toFrac(A) && ML.toFrac(A)[1] > 1 && ML.toFrac(A)[1] < 100 ? ' = ' + FR(A) : ''}`)}${kv('EER', F(E.x))}${kv('נקודה נבחרת', `(${F(cur.x)}, ${F(cur.y)})`)}${tp != null && fp != null ? kv('TP / FP', `${tp} / ${fp}`) + kv('Precision', tp + fp ? `${tp}/${tp + fp} = ${F(tp / (tp + fp), 3)}` : '—') : ''}</div>`;
+      let vt = '';
+      if (P && N) vt = tbl(['FPR', 'TPR', 'TP', 'FP', 'FN', 'TN', 'Precision'], pts.map((q, i) => { const a = Math.round(q.y * P), b = Math.round(q.x * N); return `<tr class="${i === k ? 'hl' : ''}"><td class="m">${F(q.x)}</td><td class="m">${F(q.y)}</td><td class="m">${a}</td><td class="m">${b}</td><td class="m">${P - a}</td><td class="m">${N - b}</td><td class="m">${a + b ? F(a / (a + b), 3) : '—'}</td></tr>`; }));
+      $('#r-out', sec).innerHTML = curInfo + svg + `<div class="mathblock">AUC = ${parts.join(' + ') || '0'} = ${F(A)}
+EER: העקומה חותכת את FPR+TPR=1 בנקודה (${F(E.x)}, ${F(E.y)}) → EER = ${F(E.x)}</div>` + (ptTable || '') + vt;
+    };
+  }
+});
+/* ---------- 3. KNN ---------- */
+const KNN_B25 = '3 3 1  1\n1 2 1  1\n3 2 2  2\n4 2 3  1\n2 1 2  1\n3 2 3  2\n2 3 3  2\n3 1 2  2';
+TOPICS.push({
+  id: 'knn', name: 'שכן קרוב', en: 'KNN', freq: 5,
+  lede: 'מחשב את המרחק לכל וקטור באימון, ממיין, ומראה את ההצבעה עבור כל k — גם בלי משקול וגם עם משקול 1/d.',
+  formula: ['L1 = Σ|aᵢ − bᵢ|', 'L2 = √Σ(aᵢ − bᵢ)²', 'משקל קול = 1/d  (d=0 → 0.01)'],
+  presets: [
+    { label: exl('b25a', 5), v: { 'k-tr': KNN_B25, 'k-q': '1 1 1', 'k-k': '3,5', 'k-met': 'L1' } },
+    { label: exl('b25b', 2), v: { 'k-tr': KNN_B25 + '\n3 3 3  2', 'k-q': '2 2 2', 'k-k': '2,5', 'k-met': 'L1' }, note: 'שימו לב לתיקו: ב-k=2 שני השכנים הקרובים במרחק 1 ומתחלקים 1:1. במבחן כזה קראו היטב את כלל שבירת השוויון.' },
+    { label: exl('b26a', 5), v: { 'k-tr': '7 5 4  1\n6 7 4  2\n6 5 7  2\n8 8 4  1\n8 6 6  2\n10 5 4  1', 'k-q': '6 5 4', 'k-k': '3,5', 'k-met': 'L2' }, note: 'השאלה בודקת אם משקול 1/d משנה את ההחלטה. השוו את עמודת "ללא משקול" מול "1/d" בכל k.' },
+    { label: exl('c25b', 7), v: { 'k-tr': '2 1 1  P\n1 3 2  P\n3 0 1  N\n0 2 0  N', 'k-q': '2 2 2  P\n3 3 3  P\n1 1 1  N\n0 0 0  N', 'k-k': '3', 'k-met': 'L1' }, note: 'כשלוקטורי הבדיקה יש תיוג אמיתי (עמודה אחרונה), מחושבים גם TPR ו-FPR על קבוצת המבחן.' }
+  ],
+  body: `<p class="note pnote" hidden></p><div class="bench"><div class="inputs">
+    <label class="f">קבוצת אימון<span class="hint">ערכי מאפיינים ואז תיוג, שורה לכל וקטור</span><textarea id="k-tr" rows="9">${KNN_B25}</textarea></label>
+    <label class="f">וקטורים לסיווג<span class="hint">אפשר כמה שורות. תיוג אמיתי בסוף — לא חובה</span><textarea id="k-q" rows="3" style="min-height:70px">1 1 1</textarea></label>
+    <div class="row2"><label class="f">ערכי k<input id="k-k" class="mono" value="3,5"></label>
+    <label class="f">מטריקה<select id="k-met"><option value="L1">L1 מנהטן</option><option value="L2">L2 אוקלידי</option></select></label></div>
+  </div><div class="out" id="k-out"></div></div>`,
+  traps: ['ב-L2 לא חייבים להוציא שורש כדי למיין — הסדר זהה לסדר של סכום הריבועים. אבל במשקול 1/d צריך את המרחק האמיתי.',
+    'משקול 1/d נותן לשכן קרוב מאוד הרבה כוח: שכן אחד במרחק 1 שווה ל-3 שכנים במרחק 3.',
+    'בדקו שוויון במרחק בגבול ה-k (השכן ה-k וה-k+1 באותו מרחק) — אז הבחירה תלויה בכלל שבירת תיקו.',
+    'k זוגי בבעיה בינארית עלול לתת תיקו בהצבעה.'],
+  mount(sec) { this.run = () => {
+    const tr = ML.rows($('#k-tr', sec).value).filter(r => r.length >= 2).map(r => ({ x: r.slice(0, -1).map(ML.parseNum), label: r[r.length - 1] }));
+    if (!tr.length) return; const d = tr[0].x.length;
+    const qs = ML.rows($('#k-q', sec).value).map(r => ({ x: r.slice(0, d).map(ML.parseNum), truth: r.length > d ? r[d] : null })).filter(q => q.x.length === d);
+    const ks = $('#k-k', sec).value.split(/[,\s]+/).map(Number).filter(k => k > 0);
+    const met = $('#k-met', sec).value; const kmax = Math.max(...ks);
+    const labels = [...new Set(tr.map(t => t.label))];
+    let html = ''; const results = [];
+    qs.forEach((q, qi) => {
+      const base = ML.knn(tr, q.x, kmax, met);
+      const rowsH = base.list.map((n, r) => `<tr class="${r < kmax ? 'hl' : ''}"><td class="m">${r + 1}</td><td class="m">${vec(n.x)}</td><td><b style="color:${kcol(labels.indexOf(n.label))}">${esc(n.label)}</b></td><td class="m">${n.expr}</td><td class="m"><b>${F(n.d)}</b></td><td class="m">${F(1 / Math.max(n.d, .01), 3)}</td></tr>`);
+      const verdicts = ks.map(k => {
+        const o = ML.knn(tr, q.x, k, met); results.push({ q, k, o });
+        const vs = o => Object.entries(o).map(([l, c]) => `${l}: ${F(c, 3)}`).join(' · ');
+        return `<tr><td class="m">k=${k}</td><td class="m">${vs(o.votes)}</td><td><b>${o.plain.label ?? 'תיקו ' + o.plain.tie.join('/')}</b></td><td class="m">${vs(o.wvotes)}</td><td><b>${o.weighted.label ?? 'תיקו'}</b></td><td>${o.boundaryTie ? '<span class="no">שוויון מרחק בגבול!</span>' : ''}</td></tr>`;
+      });
+      html += `<h3 style="margin:6px 0 0;font-size:16px">וקטור <span class="ltr m">${vec(q.x)}</span>${q.truth ? ` · אמת: ${esc(q.truth)}` : ''}</h3>
+      ${tbl(['k', 'קולות', 'סיווג', 'קולות 1/d', 'סיווג 1/d', ''], verdicts)}
+      ${tbl(['#', 'וקטור', 'תיוג', 'חישוב', 'd', '1/d'], rowsH)}`;
+    });
+    // test-set metrics
+    const labelled = qs.filter(q => q.truth != null);
+    if (labelled.length && ks.length) {
+      const k = ks[0]; let TP = 0, FP = 0, FN = 0, TN = 0;
+      labelled.forEach(q => { const o = ML.knn(tr, q.x, k, met); const p = ML.isPos(o.plain.label ?? ''), t = ML.isPos(q.truth); if (p && t) TP++; else if (p) FP++; else if (t) FN++; else TN++; });
+      html = `<div class="verdict">${kv('k', k)}${kv('TP FN FP TN', `${TP} ${FN} ${FP} ${TN}`)}${kv('TPR', `${TP}/${TP + FN} = ${F(TP / (TP + FN), 3)}`)}${kv('FPR', `${FP}/${FP + TN} = ${F(FP / (FP + TN), 3)}`)}</div>` + html;
+    }
+    if (results.length && !labelled.length) html = `<div class="verdict">${results.map(r => kv(`${vec(r.q.x)} · k=${r.k}`, `${r.o.plain.label ?? 'תיקו'} | 1/d: ${r.o.weighted.label ?? 'תיקו'}`)).join('')}</div>` + html;
+    if (d === 2) html = plot({ pts: [...tr.map(t => ({ x: t.x[0], y: t.x[1], color: kcol(labels.indexOf(t.label)), label: t.label })), ...qs.map(q => ({ x: q.x[0], y: q.x[1], shape: 'x', color: 'var(--ink)' }))] }) + html;
+    $('#k-out', sec).innerHTML = html;
+  }; }
+});
+
+/* ---------- 4. Decision tree / IG ---------- */
+const TENNIS = `Outlook Temp Humidity Wind Play
+Sunny Hot High Weak No
+Sunny Hot High Strong No
+Overcast Hot High Weak Yes
+Rain Mild High Weak Yes
+Rain Cool Normal Weak Yes
+Rain Cool Normal Strong No
+Overcast Cool Normal Strong Yes
+Sunny Mild High Weak No
+Sunny Cool Normal Weak Yes
+Rain Mild Normal Weak Yes
+Sunny Mild Normal Strong Yes
+Overcast Mild High Strong Yes
+Overcast Hot Normal Weak Yes
+Rain Mild High Strong No`;
+const F4 = 'f1 f2 f3 f4 class\n1 1 1 1 P\n1 1 0 0 P\n0 2 1 0 P\n0 0 0 0 N\n0 0 1 0 N\n0 2 1 0 N';
+const DRUGS = `גיל מין רקע A B
+10-40 גבר כן משפיע משפיע
+10-40 אישה כן משפיע לא
+41-60 אישה לא לא משפיע
+61-90 גבר כן לא משפיע
+61-90 אישה לא משפיע לא
+41-60 גבר לא משפיע לא
+10-40 אישה לא לא משפיע
+41-60 אישה לא משפיע משפיע`;
+TOPICS.push({
+  id: 'tree', name: 'עץ החלטה', en: 'Entropy · Information Gain', freq: 7,
+  lede: 'שורה ראשונה = שמות העמודות. בוחרים עמודת מטרה, ומקבלים את האנטרופיה וה-Information Gain של כל מאפיין עם כל השלבים.',
+  formula: ['H(S) = −Σ pᵢ·log₂(pᵢ)', 'H(S|A) = Σᵥ |Sᵥ|/|S| · H(Sᵥ)', 'IG(S,A) = H(S) − H(S|A)'],
+  presets: [
+    { label: exl('b24a', 6) + ' / ' + exl('c25a', 4), v: { 't-d': TENNIS }, tgt: 'Play' },
+    { label: exl('b25a', 4) + ' / ' + exl('b26a', 4), v: { 't-d': F4 }, tgt: 'class' },
+    { label: exl('b24b', 4), v: { 't-d': 'x1 x2 x3 x4 y\n1 1 1 1 P\n1 0 1 1 P\n0 1 1 1 N\n0 0 1 0 N' }, tgt: 'y', note: 'x3 קבוע (תמיד 1) ולכן לא נותן שום מידע: IG = 0.' },
+    { label: exl('b25b', 4), v: { 't-d': 'f1 f2 f3 f4 y\n1 1 1 1 P\n1 0 1 1 P\n0 1 1 1 N\n0 0 0 0 N' }, tgt: 'y' },
+    { label: exl('c25b', 6) + ' (חלק 2)', v: { 't-d': DRUGS }, tgt: 'A', note: 'חלק 2 של שאלת התרופות: IG(A | B) > 0 ולכן ידיעת ההשפעה של B משפרת את החיזוי של A. הגילאים כבר חולקו ל-3 קבוצות.' }
+  ],
+  body: `<p class="note pnote" hidden></p><div class="bench"><div class="inputs">
+    <label class="f">טבלת נתונים<span class="hint">שורה ראשונה = כותרות. ערכים מופרדים ברווח</span><textarea id="t-d" rows="14">${TENNIS}</textarea></label>
+    <label class="f">עמודת מטרה<select id="t-t"></select></label>
+  </div><div class="out" id="t-out"></div></div>`,
+  traps: ['IG תמיד ≥ 0. מאפיין קבוע (ערך אחד) נותן IG = 0.',
+    'אנטרופיה של חלוקה 50/50 בין שתי מחלקות = 1. של קבוצה טהורה = 0. ערכים שכדאי לזכור: H(1/4,3/4) ≈ 0.811, H(1/3,2/3) ≈ 0.918.',
+    'ב-ID3 מאפיין קטגורי שהופיע בשורש לא יופיע שוב באף מסלול בעץ (כל ענף כבר "יודע" את ערכו). מאפיין ברמה 2 בענף אחד יכול כן להופיע ברמה 3 בענף אחר.',
+    'מאפיין עם הרבה ערכים (כמו מזהה ייחודי) מקבל IG גבוה באופן מלאכותי — זה סימן ל-overfitting.'],
+  afterPreset(p) { this.buildTargets(p.tgt); },
+  mount(sec) {
+    this.buildTargets = want => {
+      const r = ML.rows($('#t-d', sec).value); if (!r.length) return; const sel = $('#t-t', sec); const prev = want || sel.value;
+      sel.innerHTML = r[0].map((h, i) => `<option value="${i}">${esc(h)}</option>`).join('');
+      const idx = r[0].indexOf(prev); sel.value = idx >= 0 ? idx : r[0].length - 1;
+    };
+    $('#t-d', sec).addEventListener('change', () => this.buildTargets());
+    this.buildTargets();
+    this.run = () => {
+      const r = ML.rows($('#t-d', sec).value); if (r.length < 2) return; const head = r[0], data = r.slice(1).filter(x => x.length === head.length);
+      if ($('#t-t', sec).options.length !== head.length) this.buildTargets();
+      const ti = +$('#t-t', sec).value;
+      const res = head.map((h, i) => i === ti ? null : { h, i, ...ML.infoGain(data, i, ti) }).filter(Boolean);
+      const best = Math.max(...res.map(x => x.ig));
+      const r0 = res[0];
+      let html = `<div class="mathblock">H(${esc(head[ti])}) : ${r0.classes.map((c, i) => `${esc(c)}=${r0.rootCounts[i]}`).join(', ')}
+H(S) = ${r0.HSexpr} = ${F(r0.HS)}</div>`;
+      html += tbl(['מאפיין', 'H(S|A)', 'IG', ''], res.sort((a, b) => b.ig - a.ig).map(x => `<tr class="${Math.abs(x.ig - best) < 1e-12 ? 'hl' : ''}"><td><b>${esc(x.h)}</b></td><td class="m">${F(x.cond)}</td><td class="m"><b>${F(x.ig)}</b></td><td style="width:40%"><div style="height:10px;border-radius:3px;background:var(--pen);width:${r0.HS ? x.ig / r0.HS * 100 : 0}%"></div></td></tr>`));
+      html += res.map(x => `<details ${Math.abs(x.ig - best) < 1e-12 ? 'open' : ''}><summary style="cursor:pointer;font-weight:600">פירוט: ${esc(x.h)}</summary><div class="mathblock">${x.parts.map(p => `${esc(x.h)}=${esc(p.v)}: [${x.classes.map((c, i) => `${p.counts[i]} ${esc(c)}`).join(', ')}]  H = ${p.expr} = ${F(p.H)}`).join('\n')}
+H(S|${esc(x.h)}) = ${x.parts.map(p => `${p.n}/${x.total}·${F(p.H, 3)}`).join(' + ')} = ${F(x.cond)}
+IG = ${F(x.HS)} − ${F(x.cond)} = ${F(x.ig)}</div></details>`).join('');
+      $('#t-out', sec).innerHTML = `<div class="verdict"><span class="big">הפיצול הטוב ביותר: ${esc(res.find(x => Math.abs(x.ig - best) < 1e-12).h)}</span>${kv('IG', F(best))}</div>` + html;
+    };
+  }
+});
+
+/* ---------- 5. Naive Bayes ---------- */
+const NB_DIAB = `A B C D n
+1 1 1 1 7
+1 1 1 0 8
+1 1 0 0 5
+1 0 0 0 9
+0 1 1 1 1
+0 1 1 0 6
+0 1 0 0 12
+0 0 0 1 6
+0 0 0 0 5`;
+TOPICS.push({
+  id: 'nb', name: 'בייס נאיבי', en: 'Naive Bayes', freq: 5,
+  lede: 'מכפילים את ההסתברות המוקדמת של כל מחלקה בהסתברויות המותנות של כל מאפיין, ומשווים. עמודה בשם n או count נספרת כמספר מופעים.',
+  formula: ['P(c|x) ∝ P(c) · Π P(xᵢ|c)', 'm-estimate: (n_c + m·p) / (n + m)'],
+  presets: [
+    { label: exl('b25a', 3), v: { 'n-d': 'A B C y\n0 0 1 0\n0 1 0 0\n1 1 0 0\n0 0 1 1\n1 1 1 1\n1 0 0 1\n1 1 0 1', 'n-mode': 'none' }, tgt: 'y', q: { A: '0', B: '0', C: '1' } },
+    { label: exl('b25b', 7), v: { 'n-d': NB_DIAB, 'n-mode': 'zero', 'n-m': 3, 'n-p': 0.5 }, tgt: 'C', q: { A: '1', B: '0', D: '0' }, note: 'P(B=0|C=1) = 0/22 → מפעילים החלקה רק על האיבר הזה: (0+3·0.5)/(22+3) = 0.06. בפתרון הרשמי ההסתברות יוצאת ≈ 0.08 — כמו כאן.' },
+    { label: exl('c25b', 6) + ' (חלק 1)', v: { 'n-d': DRUGS.split('\n').map(l => l.split(' ').slice(0, 4).join(' ')).join('\n'), 'n-mode': 'zero', 'n-m': 3, 'n-p': '' }, tgt: 'A', q: { 'גיל': '41-60', 'מין': 'גבר', 'רקע': 'כן' }, note: 'גבר בן 50 עם מחלות רקע. אין בנתונים אף "41-60 + כן" — שימו לב לאיברים שמתאפסים ואיך ההחלקה משנה את התוצאה.' }
+  ],
+  body: `<p class="note pnote" hidden></p><div class="bench"><div class="inputs">
+    <label class="f">טבלת נתונים<span class="hint">שורה ראשונה = כותרות. עמודת n = מס' מופעים (לא חובה)</span><textarea id="n-d" rows="10"></textarea></label>
+    <label class="f">עמודת מטרה<select id="n-t"></select></label>
+    <div id="n-q" class="row2"></div>
+    <label class="f">החלקה<select id="n-mode"><option value="zero">רק לאיבר שיצא 0 (כמו בפתרונות הקורס)</option><option value="all">לכל האיברים</option><option value="none">בלי החלקה</option></select></label>
+    <div class="row2"><label class="f">m<input id="n-m" type="number" value="3" step="any"></label><label class="f">p<input id="n-p" type="number" placeholder="1/|ערכים|" step="any"></label></div>
+  </div><div class="out" id="n-out"></div></div>`,
+  traps: ['אם P(xᵢ|c) = 0 — כל המכפלה מתאפסת. זה הרגע להשתמש ב-m-estimate עם ה-m וה-p שנתונים בשאלה.',
+    'כדי להחליט מספיק להשוות את המונים P(c)·ΠP(xᵢ|c). המכנה P(x) זהה לכל המחלקות.',
+    'כשמבקשים "ההסתברות ש..." — מנרמלים: מחלקים את המונה של המחלקה בסכום המונים של כל המחלקות.',
+    'בטבלה עם עמודת "מס\' מופעים" — כל שורה נספרת כמספר הזה, לא כ-1.'],
+  afterPreset(p) { this.build(p.tgt, p.q); },
+  mount(sec) {
+    $('#n-d', sec).value = this.presets[0].v['n-d'];
+    this.build = (tgt, q) => {
+      const r = ML.rows($('#n-d', sec).value); if (r.length < 2) return; const head = r[0], data = r.slice(1);
+      const wi = head.findIndex(h => /^(n|count|מופעים|cnt)$/i.test(h));
+      const sel = $('#n-t', sec); const prev = tgt ?? (sel.selectedOptions[0] && sel.selectedOptions[0].textContent);
+      sel.innerHTML = head.map((h, i) => i === wi ? '' : `<option value="${i}">${esc(h)}</option>`).join('');
+      const ti = head.indexOf(prev); sel.value = ti >= 0 && ti !== wi ? ti : (wi === head.length - 1 ? head.length - 2 : head.length - 1);
+      const t = +sel.value;
+      const old = {}; $$('#n-q select', sec).forEach(s => old[s.dataset.h] = s.value);
+      $('#n-q', sec).innerHTML = head.map((h, i) => (i === t || i === wi) ? '' : `<label class="f">${esc(h)} =<select data-i="${i}" data-h="${esc(h)}"><option value="">— לא בשימוש</option>${[...new Set(data.map(x => x[i]))].map(v => `<option>${esc(v)}</option>`).join('')}</select></label>`).join('');
+      $$('#n-q select', sec).forEach(s => { const v = q ? q[s.dataset.h] : old[s.dataset.h]; if (v != null) s.value = v; else if (!q) s.selectedIndex = 1; });
+    };
+    $('#n-d', sec).addEventListener('change', () => this.build());
+    $('#n-t', sec).addEventListener('change', () => this.build(sec.querySelector('#n-t').selectedOptions[0].textContent));
+    this.build('y', { A: '0', B: '0', C: '1' });
+    $('#n-mode', sec).value = 'none';
+    this.run = () => {
+      const r = ML.rows($('#n-d', sec).value); if (r.length < 2) return; const head = r[0], data = r.slice(1).filter(x => x.length === head.length);
+      const wi = head.findIndex(h => /^(n|count|מופעים|cnt)$/i.test(h)); const ti = +$('#n-t', sec).value;
+      const q = {}; $$('#n-q select', sec).forEach(s => { if (s.value !== '') q[s.dataset.i] = s.value; });
+      const opt = { m: +$('#n-m', sec).value || 0, p: $('#n-p', sec).value === '' ? null : +$('#n-p', sec).value, mode: $('#n-mode', sec).value };
+      const R = ML.naiveBayes(data, head, ti, wi, q, opt);
+      const best = R.out.reduce((a, b) => b.score > a.score ? b : a);
+      const tie = R.out.filter(o => Math.abs(o.score - best.score) < 1e-12).length > 1;
+      let html = `<div class="verdict"><span class="big">${tie ? 'תיקו — לפי כלל השאלה' : `חיזוי: ${esc(head[ti])} = ${esc(best.c)}`}</span>${R.out.map(o => kv(`P(${esc(o.c)}|x)`, F(o.post, 4))).join('')}</div>`;
+      html += R.out.map(o => `<div class="mathblock"><b>${esc(head[ti])} = ${esc(o.c)}</b>
+P(${esc(o.c)}) = ${F(o.nc)}/${F(R.total)} = ${F(o.prior)}
+${o.terms.map(t => `P(${esc(t.f)}=${esc(t.v)} | ${esc(o.c)}) = ${t.smooth ? `(${F(t.nv)} + ${F(t.m)}·${F(t.p, 3)}) / (${F(t.nc)} + ${F(t.m)})` : `${F(t.nv)}/${F(t.nc)}`} = ${F(t.prob)}${t.smooth ? '   ← הוחלק' : ''}`).join('\n')}
+מונה = ${[F(o.prior), ...o.terms.map(t => F(t.prob))].join(' · ')} = ${F(o.score, 5)}</div>`).join('');
+      html += `<div class="mathblock">נרמול: ${R.out.map(o => `P(${esc(o.c)}|x) = ${F(o.score, 5)} / ${F(R.out.reduce((s, x) => s + x.score, 0), 5)} = ${F(o.post)}`).join('\n')}</div>`;
+      $('#n-out', sec).innerHTML = html;
+    };
+  }
+});
+/* ---------- 6. Perceptron ---------- */
+const PERC_T = '0 2 0 1  P\n1 0 1 1  P\n1 0 0 0  P\n0 1 1 1  P\n0 1 1 2  N\n2 1 1 0  N\n1 2 0 1  N\n1 2 0 1  N';
+TOPICS.push({
+  id: 'perc', name: 'פרספטרון', en: 'Perceptron', freq: 6,
+  lede: 'עוברים על הטבלה שורה-שורה. אם החיזוי נכון — לא נוגעים. טעה ב-P → מחסירים את x. טעה ב-N → מוסיפים את x. לחצו "הבא" כדי לראות כל צעד.',
+  formula: ['net = Σ wᵢ·xᵢ  (x₀ = 1 לנוירון דמי)', 'ŷ = P אם net ≥ 0', 'טעה כ-P: w ← w − x', 'טעה כ-N: w ← w + x'],
+  presets: [
+    { label: exl('b24b', 7), v: { 'p-tr': '0 1 2  1\n8 1 4  0\n7 1 1  1\n3 2 4  0', 'p-w': '1', 'p-b': false, 'p-ep': 2, 'p-q': '3 3 3\n2 3 4' }, note: 'נוירון "ללא פונקציית אקטיבציה" בלי bias — הפתרון הרשמי עובד בדיוק עם חוק הפרספטרון. סיווג סופי: שניהם 0.' },
+    { label: exl('b25a', 7), v: { 'p-tr': '0 1 2  1\n8 1 4  0\n7 1 1  1\n3 2 4  0', 'p-w': '1', 'p-b': true, 'p-bi': 1, 'p-ep': 2, 'p-q': '3 3 3\n2 3 4' }, note: 'בטבלת הפתרון הרשמית שורה 5 (אפוק 2) מסומנת "No", אבל net = −2 < 0 עם תיוג 1 — צריך עדכון. התשובה הסופית (שניהם 0) לא משתנה.' },
+    { label: exl('b25b', 6), v: { 'p-tr': PERC_T, 'p-w': '1', 'p-b': true, 'p-bi': 1, 'p-ep': 1, 'p-q': '' } },
+    { label: exl('b26a', 7), v: { 'p-tr': PERC_T.split('\n').filter((_, i) => i % 2 === 0).join('\n'), 'p-w': '1', 'p-b': true, 'p-bi': 1, 'p-ep': 2, 'p-q': PERC_T.split('\n').filter((_, i) => i % 2 === 1).join('\n') }, note: 'שורות אי-זוגיות = אימון, זוגיות = מבחן (הוכנסו כוקטורי בדיקה עם תיוג). שימו לב: net = 0 נחשב P — כך גם בפתרון הרשמי.' },
+    { label: exl('c25b', 1), v: { 'p-tr': '9 1 2  0\n8 1 4  0\n1 2 3  1\n3 2 4  1', 'p-w': '2', 'p-b': true, 'p-bi': 2, 'p-ep': 1, 'p-q': '2 2 2\n9 9 9' } }
+  ],
+  body: `<p class="note pnote" hidden></p><div class="bench"><div class="inputs">
+    <label class="f">קבוצת אימון<span class="hint">מאפיינים ואז תיוג (P/N או 1/0)</span><textarea id="p-tr" rows="7"></textarea></label>
+    <div class="row2"><label class="f">משקל התחלתי<input id="p-w" class="mono" value="1" title="מספר אחד לכולם, או רשימה"></label><label class="f">אפוקים<input id="p-ep" type="number" min="1" value="2"></label></div>
+    <div class="row2"><label class="check"><input id="p-b" type="checkbox" checked> נוירון דמי (bias)</label><label class="f">w₀ התחלתי<input id="p-bi" type="number" value="1"></label></div>
+    <label class="f">net = 0 נחשב<select id="p-rule"><option value="ge">P (חיובי) — כמו במבחנים</option><option value="gt">N (שלילי)</option></select></label>
+    <label class="f">וקטורים לסיווג / קבוצת מבחן<span class="hint">תיוג בסוף — לא חובה</span><textarea id="p-q" rows="3" style="min-height:70px"></textarea></label>
+    <div class="btns"><button class="btn ghost" id="p-prev">◀ הקודם</button><button class="btn" id="p-next">הבא ▶</button><button class="btn ghost" id="p-all">לסוף</button></div>
+    <input id="p-s" type="range" min="0" value="0" aria-label="צעד">
+  </div><div class="out" id="p-out"></div></div>`,
+  traps: ['לפני הכל: הוסיפו x₀ = 1 בתחילת כל שורה אם יש bias, וזכרו שגם w₀ מתעדכן.',
+    'עדכון רק כשיש טעות. חיזוי נכון = המשקלים נשארים בדיוק אותו דבר לשורה הבאה.',
+    'אפוק = מעבר מלא אחד על כל הטבלה. "2 אפוקים" = 2 מעברים, גם אם כבר התכנס.',
+    'Accuracy על קבוצת האימון מחושב עם המשקלים הסופיים — לא עם החיזויים שנעשו תוך כדי האימון.',
+    'פרספטרון בודד מתכנס רק כשהנתונים פרידים לינארית (XOR לא).'],
+  afterPreset() { $('#p-s', this.sec).value = 0; },
+  mount(sec) {
+    this.sec = sec; const s = $('#p-s', sec);
+    $('#p-tr', sec).value = this.presets[0].v['p-tr']; $('#p-q', sec).value = '3 3 3\n2 3 4'; $('#p-b', sec).checked = false;
+    $('#p-prev', sec).onclick = () => { s.value = Math.max(0, +s.value - 1); this.run(); };
+    $('#p-next', sec).onclick = () => { s.value = +s.value + 1; this.run(); };
+    $('#p-all', sec).onclick = () => { s.value = s.max; this.run(); };
+    this.run = () => {
+      const tr = ML.rows($('#p-tr', sec).value).filter(r => r.length >= 2); if (!tr.length) return;
+      const X = tr.map(r => r.slice(0, -1).map(ML.parseNum)), Y = tr.map(r => ML.isPos(r[r.length - 1])); const d = X[0].length;
+      const wi = $('#p-w', sec).value.split(/[,\s]+/).filter(Boolean).map(ML.parseNum);
+      const bias = $('#p-b', sec).checked;
+      const R = ML.perceptron(X, Y, { init: wi.length > 1 ? wi : wi[0] ?? 0, bias, biasInit: +$('#p-bi', sec).value || 0, epochs: Math.max(1, +$('#p-ep', sec).value || 1), rule: $('#p-rule', sec).value });
+      s.max = R.steps.length; const cur = Math.min(+s.value, R.steps.length); s.value = cur;
+      const wn = bias ? ['w₀', ...X[0].map((_, i) => `w${i + 1}`)] : X[0].map((_, i) => `w${i + 1}`);
+      const st = R.steps[cur - 1];
+      let card = '';
+      if (!st) card = `<div class="verdict"><span class="big">התחלה</span>${kv('w', vec(R.steps[0].before))}</div><p class="note">לחצו "הבא" כדי לבצע את השורה הראשונה.</p>`;
+      else card = `<div class="verdict"><span class="big">אפוק ${st.epoch} · שורה ${st.i + 1}</span>${kv('חיזוי', posLbl(st.pred))}${kv('אמת', posLbl(st.y))}${kv('עדכון', st.upd ? (st.upd > 0 ? '<span class="no">w + x</span>' : '<span class="no">w − x</span>') : '<span class="yes">לא</span>')}</div>
+      <div class="mathblock">x = ${vec(st.x)}${bias ? '   (x₀=1 נוסף)' : ''}
+w = ${vec(st.before)}
+net = ${st.x.map((v, j) => `${F(st.before[j])}·${F(v)}`).join(' + ')} = ${F(st.net)} ${st.net >= 0 ? '≥' : '<'} 0 → ${st.pred ? 'P' : 'N'}
+${st.upd ? `טעות → w ${st.upd > 0 ? '+' : '−'} x = ${vec(st.before)} ${st.upd > 0 ? '+' : '−'} ${vec(st.x)} = ${vec(st.after)}` : 'נכון → w לא משתנה'}</div>`;
+      const rowsH = R.steps.map((x, k) => `<tr class="${k === cur - 1 ? 'hl' : k >= cur ? 'dim' : ''}"><td class="m">${x.epoch}</td><td class="m">${x.i + 1}</td><td class="m">${vec(x.x)}</td><td>${posLbl(x.y)}</td><td class="m">${vec(x.before)}</td><td class="m">${k < cur ? F(x.net) : ''}</td><td>${k < cur ? posLbl(x.pred) : ''}</td><td>${k < cur ? (x.upd ? '<span class="no">כן</span>' : 'לא') : ''}</td></tr>`);
+      let fin = '';
+      if (cur === R.steps.length) {
+        const accOf = (Xs, Ys) => Xs.filter((x, i) => R.classify(x).p === Ys[i]).length;
+        const tra = accOf(X, Y);
+        const qs = ML.rows($('#p-q', sec).value).filter(r => r.length >= d).map(r => ({ x: r.slice(0, d).map(ML.parseNum), t: r.length > d ? ML.isPos(r[d]) : null }));
+        const lab = qs.filter(q => q.t !== null); const tea = lab.filter(q => R.classify(q.x).p === q.t).length;
+        fin = `<div class="verdict"><span class="big">משקלים סופיים</span>${kv(wn.join(','), vec(R.w))}${kv('Accuracy אימון', `${tra}/${X.length} = ${F(tra / X.length, 3)}`)}${lab.length ? kv('Accuracy מבחן', `${tea}/${lab.length} = ${F(tea / lab.length, 3)}`) + kv('הפרש', F(Math.abs(tra / X.length - tea / lab.length), 3)) : ''}</div>`;
+        if (qs.length) fin += tbl(['וקטור', 'net', 'סיווג', 'אמת'], qs.map(q => { const c = R.classify(q.x); return `<tr><td class="m">${vec(q.x)}</td><td class="m">${R.aug(q.x).map((v, j) => `${F(R.w[j])}·${F(v)}`).join('+')} = ${F(c.net)}</td><td>${posLbl(c.p)}</td><td>${q.t === null ? '' : posLbl(q.t) + (q.t === c.p ? ' <span class="yes">✓</span>' : ' <span class="no">✗</span>')}</td></tr>`; }));
+      }
+      $('#p-out', sec).innerHTML = fin + card + tbl(['אפוק', '#', 'x', 'y', `w לפני (${wn.join(',')})`, 'net', 'ŷ', 'עדכון?'], rowsH);
+      $('#p-prev', sec).disabled = cur === 0; $('#p-next', sec).disabled = cur === R.steps.length;
+    };
+  }
+});
+
+/* ---------- 7. SVM ---------- */
+const SVM_T = '1 4 1  P  0\n1 2 3  P  0\n0 0 1  P  1\n-1 4 0  P  1\n1 0 -2  N  1\n-1 -1 1  N  1/6\n0 -4 0  N  0\n1 0 -3  N  5/6';
+TOPICS.push({
+  id: 'svm', name: 'SVM', en: 'Support Vector Machine', freq: 7,
+  lede: 'ארבעה סוגי שאלות שחוזרים: לבנות w מתוך האלפות, למצוא את הישר מתוך 3 וקטורי תמיכה, לחשב רוחב שוליים, ולסווג נקודה עם קרנל.',
+  formula: ['w = Σ αᵢ·yᵢ·xᵢ', 'וקטור תמיכה: yᵢ(w·xᵢ + b) = 1', 'margin = 2/‖w‖', 'f(x) = Σ αᵢ·yᵢ·K(xᵢ,x) + b', 'RBF: K = e^(−γ‖x−z‖²)'],
+  presets: [
+    { label: exl('b24b', 3), sub: 'alpha', v: { 's-a': SVM_T, 's-ab': '1/3' } },
+    { label: exl('b25b', 3) + ' / ' + exl('c25a', 3), sub: 'alpha', v: { 's-a': SVM_T.replace('1 4 1  P  0', '1 4 1  P  1').replace('0 0 1  P  1', '0 0 1  P  0'), 's-ab': '1/3' } },
+    { label: exl('b24a', 5) + ' / ' + exl('b25a', 2), sub: 'sv', v: { 's-sv': '0 6  P\n5 4  P\n2 0  N' } },
+    { label: exl('b26a', 2), sub: 'margin', v: { 's-mw': '3 4', 's-mb': '-5' } },
+    { label: exl('c25b', 4), sub: 'kernel', v: { 's-kt': 'rbf', 's-kg': 0.5, 's-ks': '1 2 1  1  0.5\n-1 0 2  -1  0.3\n0 1 -1  1  0.2', 's-kb': -0.1, 's-kq': '0 1 1' }, note: 'בפתרון הרשמי חושב בטעות עם הנקודה (1,1,0) במקום (0,1,1). שתי הנקודות מסווגות +1 — נסו להחליף ולראות.' }
+  ],
+  body: `<div class="sub" role="tablist"></div><p class="note pnote" hidden></p>
+  <div class="bench"><div class="inputs">
+    <div data-pane="alpha"><label class="f">וקטורים: x… תיוג α<span class="hint">α = 0 לוקטור שאינו וקטור תמיכה. שברים כמו 1/6 מותרים</span><textarea id="s-a" rows="9">${SVM_T}</textarea></label>
+      <label class="f">b (לפי w·x − b)<input id="s-ab" class="mono" value="1/3"></label></div>
+    <div data-pane="sv"><label class="f">וקטורי תמיכה: x… תיוג<span class="hint">צריך d+1 וקטורים (3 בדו-ממד)</span><textarea id="s-sv" rows="5">0 6  P
+5 4  P
+2 0  N</textarea></label></div>
+    <div data-pane="margin"><label class="f">w<input id="s-mw" class="mono" value="3 4"></label><label class="f">b<input id="s-mb" class="mono" value="-5"></label><label class="f">נקודה לבדיקה (לא חובה)<input id="s-mx" class="mono" placeholder="1 1"></label></div>
+    <div data-pane="kernel"><label class="f">סוג קרנל<select id="s-kt"><option value="rbf">RBF  e^(−γ‖x−z‖²)</option><option value="poly">פולינומי (x·z + c)^d</option><option value="lin">לינארי x·z</option></select></label>
+      <div class="row2"><label class="f">γ<input id="s-kg" type="number" step="any" value="0.5"></label><label class="f">d<input id="s-kd" type="number" value="2"></label><label class="f">c<input id="s-kc" type="number" step="any" value="1"></label></div>
+      <label class="f">וקטורי תמיכה: x… y α<textarea id="s-ks" rows="4">1 2 1  1  0.5
+-1 0 2  -1  0.3
+0 1 -1  1  0.2</textarea></label>
+      <div class="row2"><label class="f">b<input id="s-kb" class="mono" value="-0.1"></label><label class="f">נקודה לסיווג<input id="s-kq" class="mono" value="0 1 1"></label></div></div>
+  </div><div class="out" id="s-out"></div></div>`,
+  traps: ['התיוגים ב-SVM הם +1 ו-−1 (לא 1 ו-0). P → +1, N → −1.',
+    'שימו לב לסימן של b: יש שאלות עם w·x − b ויש עם w·x + b.',
+    'בשאלת 3 וקטורי תמיכה: כותבים w₁x₁ + w₂x₂ + b = ±1 לכל אחד ופותרים 3 משוואות ב-3 נעלמים.',
+    'γ גדול ב-RBF = הקרנל "צר", כל נקודה משפיעה רק על הסביבה הקרובה שלה → מודל מורכב יותר, סיכון גבוה ל-overfitting. ערך הקרנל בין נקודות רחוקות קטן.',
+    'מיפוי למעגל: (x₁,x₂) → (x₁, x₂, x₁²+x₂²) עובד כי משוואת המעגל −2a·x₁ − 2b·x₂ + 1·(x₁²+x₂²) + const = 0 לינארית במרחב החדש. מיפוי שמצמיד x⁴ לאותו משקל כמו x² — לא עובד.',
+    'Hard margin נכשל כשהנתונים לא פרידים לינארית (אפילו נקודה חריגה אחת).'],
+  mount(sec) {
+    subTabs(sec, this, [['alpha', 'w מתוך α'], ['sv', 'ישר מ-3 וקטורים'], ['margin', 'רוחב שוליים'], ['kernel', 'סיווג עם קרנל']]);
+    const yv = l => { const n = parseFloat(l); return isNaN(n) ? (ML.isPos(l) ? 1 : -1) : (n > 0 ? 1 : -1); };
+    this.run = () => {
+      const out = $('#s-out', sec); let html = '';
+      if (this.sub === 'alpha') {
+        const r = ML.rows($('#s-a', sec).value).filter(x => x.length >= 3);
+        const sv = r.map((x, i) => ({ i, x: x.slice(0, -2).map(ML.parseNum), y: yv(x[x.length - 2]), a: ML.parseNum(x[x.length - 1]) })).filter(s => s.a);
+        if (!sv.length) return; const w = ML.svmW(sv); const b = ML.parseNum($('#s-ab', sec).value || '0');
+        html = `<div class="verdict"><span class="big ltr">w = ${vecF(w)}</span>${kv('היפר-מישור', `<span class="ltr">${vecF(w)}·x − ${ML.mixed(b)}</span>`)}</div>
+        <div class="mathblock">${sv.map(s => `#${s.i + 1}: α·y·x = ${ML.frac(s.a)} · (${s.y > 0 ? '+1' : '−1'}) · ${vec(s.x)} = ${vecF(s.x.map(v => s.a * s.y * v))}`).join('\n')}
+${'─'.repeat(30)}
+w = ${w.map((_, j) => sv.map(s => ML.frac(s.a * s.y * s.x[j])).join(' + ')).map((e, j) => `w${j + 1} = ${e} = ${ML.mixed(w[j])}`).join('\n    ')}</div>`;
+        html += tbl(['#', 'x', 'y', 'w·x − b', 'y(w·x−b)'], r.map((x, i) => { const xv = x.slice(0, -2).map(ML.parseNum), y = yv(x[x.length - 2]); const f = xv.reduce((s, v, j) => s + v * w[j], 0) - b; return `<tr class="${ML.parseNum(x[x.length - 1]) ? 'hl' : ''}"><td class="m">${i + 1}</td><td class="m">${vec(xv)}</td><td class="m">${y > 0 ? '+1' : '−1'}</td><td class="m">${ML.mixed(f)}</td><td class="m">${ML.mixed(y * f)}</td></tr>`; }));
+        html += '<p class="note">בדיקה: לוקטורי התמיכה (מסומנים) y(w·x−b) צריך לצאת 1 בערך. זו דרך מהירה לפסול תשובות במבחן.</p>';
+      } else if (this.sub === 'sv') {
+        const pts = ML.rows($('#s-sv', sec).value).filter(x => x.length >= 2).map(x => ({ x: x.slice(0, -1).map(ML.parseNum), y: yv(x[x.length - 1]) }));
+        if (pts.length < 2) return; const d = pts[0].x.length;
+        if (pts.length !== d + 1) { out.innerHTML = `<p class="warn">צריך בדיוק ${d + 1} וקטורים עבור ${d} ממדים.</p>`; return; }
+        const S = ML.svmFromSV(pts); if (!S) { out.innerHTML = '<p class="warn">המשוואות תלויות — אין פתרון יחיד.</p>'; return; }
+        const nw = Math.hypot(...S.w);
+        html = `<div class="verdict"><span class="big ltr">${S.w.map((v, j) => `${ML.frac(v)}·f${j + 1}`).join(' + ')} + (${ML.frac(S.b)}) = 0</span>${kv('margin = 2/‖w‖', F(2 / nw))}</div>
+        <div class="mathblock">${pts.map((p, i) => `(${i + 1}) ${p.x.map((v, j) => `w${j + 1}·${F(v)}`).join(' + ')} + b = ${p.y > 0 ? '+1' : '−1'}`).join('\n')}
+${'─'.repeat(30)}
+${S.w.map((v, j) => `w${j + 1} = ${ML.frac(v)} ≈ ${F(v)}`).join('\n')}
+b = ${ML.frac(S.b)} ≈ ${F(S.b)}
+${S.w.map((v, j) => `w${j + 1}`).join(' vs ')}: ${S.w.length === 2 ? (S.w[0] < S.w[1] ? 'w1 < w2' : 'w1 > w2') : ''}, b ${S.b < 0 ? 'שלילי' : 'חיובי'}</div>`;
+        if (d === 2) { const [a, c] = S.w; html += plot({ pts: pts.map(p => ({ x: p.x[0], y: p.x[1], color: p.y > 0 ? 'var(--k0)' : 'var(--k1)', shape: p.y > 0 ? 'dot' : 'tri', r: 7 })), lines: [{ a, b: c, c: S.b }, { a, b: c, c: S.b - 1, dash: 1, color: 'var(--k0)', w: 1.4 }, { a, b: c, c: S.b + 1, dash: 1, color: 'var(--k1)', w: 1.4 }] }); }
+      } else if (this.sub === 'margin') {
+        const w = $('#s-mw', sec).value.split(/[,\s]+/).filter(Boolean).map(ML.parseNum), b = ML.parseNum($('#s-mb', sec).value || '0');
+        const n2 = w.reduce((s, v) => s + v * v, 0), n = Math.sqrt(n2);
+        html = `<div class="verdict">${kv('‖w‖', F(n))}${kv('margin = 2/‖w‖', F(2 / n))}${kv('מרחק ישר←וקטור תמיכה', F(1 / n))}</div>
+        <div class="mathblock">‖w‖ = √(${w.map(v => F(v) + '²').join(' + ')}) = √${F(n2)} = ${F(n)}
+margin = 2/‖w‖ = 2/${F(n)} = ${F(2 / n)}</div>`;
+        const xs = $('#s-mx', sec).value.split(/[,\s]+/).filter(Boolean).map(ML.parseNum);
+        if (xs.length === w.length) { const f = xs.reduce((s, v, j) => s + v * w[j], 0) + b; html += `<div class="mathblock">w·x + b = ${xs.map((v, j) => `${F(w[j])}·${F(v)}`).join(' + ')} + ${F(b)} = ${F(f)}
+מרחק מהישר = |${F(f)}|/${F(n)} = ${F(Math.abs(f) / n)}   ${Math.abs(Math.abs(f) - 1) < 1e-9 ? '← על השוליים (וקטור תמיכה)' : ''}</div>`; }
+      } else {
+        const type = $('#s-kt', sec).value, g = +$('#s-kg', sec).value, dg = +$('#s-kd', sec).value, c0 = +$('#s-kc', sec).value;
+        const sv = ML.rows($('#s-ks', sec).value).filter(x => x.length >= 3).map(x => ({ x: x.slice(0, -2).map(ML.parseNum), y: yv(x[x.length - 2]), a: ML.parseNum(x[x.length - 1]) }));
+        const q = $('#s-kq', sec).value.split(/[,\s]+/).filter(Boolean).map(ML.parseNum), b = ML.parseNum($('#s-kb', sec).value || '0');
+        if (!sv.length || q.length !== sv[0].x.length) return;
+        let sum = b; const rowsH = sv.map((s, i) => { const k = ML.kernel(type, s.x, q, g, dg, c0); const t = s.a * s.y * k.k; sum += t;
+          return `<tr><td class="m">${vec(s.x)}</td><td class="m">${s.y > 0 ? '+1' : '−1'}</td><td class="m">${F(s.a)}</td><td class="m">${type === 'rbf' ? `‖·‖²=${F(k.sq)} → e^(−${F(g)}·${F(k.sq)})` : `x·z=${F(k.dot)}`}</td><td class="m">${F(k.k)}</td><td class="m">${F(t)}</td></tr>`; });
+        html = `<div class="verdict"><span class="big">סיווג: ${sum > 0 ? '+1' : sum < 0 ? '−1' : '0 (על המפריד)'}</span>${kv('f(x)', F(sum))}</div>` + tbl(['xᵢ', 'yᵢ', 'αᵢ', 'חישוב', 'K(xᵢ,x)', 'α·y·K'], rowsH) + `<div class="mathblock">f(x) = Σ α·y·K + b = ${F(sum - b)} + (${F(b)}) = ${F(sum)}</div>`;
+      }
+      out.innerHTML = html;
+    };
+  }
+});
+
+/* ---------- 8. K-Means ---------- */
+const KM_GRID = (() => { const p = []; [-1, 1, 3, 5].forEach(x => { for (let y = 0; y <= 5; y++) p.push(`${x} ${y}`); }); p.push('0 5', '4 5'); return p.join('\n'); })();
+const DB_PTS = (() => { const p = []; [1, 2, 6, 7].forEach(x => { for (let y = 1; y <= 5; y++) p.push(`${x} ${y}`); }); p.push('3 4', '4 3', '5 2'); return p.join('\n'); })();
+TOPICS.push({
+  id: 'kmeans', name: 'K-Means', en: 'Clustering · Distortion', freq: 7,
+  lede: 'כל איטרציה = שני שלבים: (1) שיוך כל נקודה למרכז הקרוב, (2) הזזת כל מרכז לממוצע הנקודות שלו. דפדפו שלב-שלב וראו את המרכזים זזים.',
+  formula: ['שיוך: argminⱼ ‖x − cⱼ‖', 'עדכון: cⱼ = ממוצע הנקודות באשכול', 'Distortion = Σ ‖x − c(x)‖²'],
+  presets: [
+    { label: exl('b24a', 2) + ' / ' + exl('c25a', 2), sub: 'run', v: { 'km-p': KM_GRID, 'km-c': '-1 2\n2 2\n5 2' } },
+    { label: exl('b25b', 8), sub: 'run', v: { 'km-p': KM_GRID, 'km-c': '-1 2\n2 2\n5 2' }, note: 'אותם נתונים: התוצאה הסופית היא 7 / 12 / 7. בדקו איזו מהתמונות במבחן מתאימה.' },
+    { label: exl('b26a', 6), sub: 'run', v: { 'km-p': '1 1\n2 2\n3 2\n3 4\n5 5\n6 6\n8 8\n9 9', 'km-c': '1 1\n3 4\n9 9' }, note: 'השאלה מבקשת את ממוצע 3 המרכזים אחרי 2 איטרציות מלאות — דפדפו עד סוף איטרציה 2.' },
+    { label: exl('c25b', 2) + ' (K=2)', sub: 'run', v: { 'km-p': DB_PTS, 'km-c': '1 5\n1 4' } },
+    { label: exl('b24a', 1), sub: 'dist', v: { 'km-d': '(2,4,6) (4,6,8) (6,8,10)\n(10,20,30) (20,30,40) (30,40,50)' } },
+    { label: exl('b24b', 5), sub: 'dist', v: { 'km-d': '(7,0) (2,0) (3,0)\n(0,10) (0,50) (0,60)' } },
+    { label: exl('b25a', 6), sub: 'dist', v: { 'km-d': '(2,0,2) (4,0,4) (6,0,6)\n(0,20,0) (0,60,0) (0,40,0)' } }
+  ],
+  body: `<div class="sub" role="tablist"></div><p class="note pnote" hidden></p>
+  <div class="bench"><div class="inputs">
+    <div data-pane="run"><label class="f">נקודות<textarea id="km-p" rows="8">${KM_GRID}</textarea></label>
+      <label class="f">מרכזים התחלתיים<textarea id="km-c" rows="3" style="min-height:70px">-1 2
+2 2
+5 2</textarea></label>
+      <div class="btns"><button class="btn ghost" id="km-prev">◀ הקודם</button><button class="btn" id="km-next">שלב הבא ▶</button><button class="btn ghost" id="km-all">לסוף</button></div>
+      <input id="km-s" type="range" min="0" value="0" aria-label="שלב"></div>
+    <div data-pane="dist"><label class="f">אשכולות — שורה לכל אשכול<span class="hint">וקטורים בסוגריים</span><textarea id="km-d" rows="4">(2,4,6) (4,6,8) (6,8,10)
+(10,20,30) (20,30,40) (30,40,50)</textarea></label></div>
+  </div><div class="out" id="km-out"></div></div>`,
+  traps: ['Distortion = סכום ריבועי המרחקים (בלי שורש!) של כל נקודה מהמרכז של האשכול שלה.',
+    'בשלב השיוך משתמשים במרכזים הישנים; רק אחרי שכל הנקודות שויכו מחשבים מרכזים חדשים.',
+    'האלגוריתם עוצר כשאף נקודה לא מחליפה אשכול. התוצאה תלויה במרכזים ההתחלתיים.',
+    'בשאלות עם הרבה נקודות על גריד — חפשו סימטריה. לא צריך לחשב כל מרחק.'],
+  afterPreset() { $('#km-s', this.sec).value = 0; },
+  mount(sec) {
+    this.sec = sec; subTabs(sec, this, [['run', 'הרצה צעד-צעד'], ['dist', 'חישוב Distortion']]);
+    const s = $('#km-s', sec);
+    $('#km-prev', sec).onclick = () => { s.value = Math.max(0, +s.value - 1); this.run(); };
+    $('#km-next', sec).onclick = () => { s.value = +s.value + 1; this.run(); };
+    $('#km-all', sec).onclick = () => { s.value = s.max; this.run(); };
+    this.run = () => {
+      const out = $('#km-out', sec);
+      if (this.sub === 'dist') {
+        const cl = $('#km-d', sec).value.split('\n').map(l => [...l.matchAll(/\(([^)]*)\)/g)].map(m => m[1].split(/[,\s]+/).filter(Boolean).map(ML.parseNum))).filter(c => c.length);
+        if (!cl.length) return; const R = ML.distortion(cl); const tot = R.reduce((a, b) => a + b.sse, 0);
+        out.innerHTML = `<div class="verdict"><span class="big">Distortion = ${F(tot)}</span>${R.map((r, i) => kv(`אשכול ${i + 1}`, F(r.sse))).join('')}</div>` + R.map((r, i) => `<div class="mathblock"><b>אשכול ${i + 1}</b>: מרכז = ${vec(r.centroid)}
+${r.terms.map(t => `${vec(t.p)} → ${t.p.map((v, k) => `(${F(v)}−${F(r.centroid[k])})²`).join('+')} = ${F(t.sq)}`).join('\n')}
+סה"כ = ${F(r.sse)}</div>`).join('');
+        return;
+      }
+      const P = numRows($('#km-p', sec).value).filter(r => r.length >= 1), C = numRows($('#km-c', sec).value).filter(r => r.length === (P[0] || []).length);
+      if (!P.length || !C.length) return;
+      const it = ML.kmeans(P, C); s.max = it.length * 2; const st = Math.min(+s.value, it.length * 2); s.value = st;
+      const iterIdx = Math.ceil(st / 2) - 1, phase = st === 0 ? 'init' : st % 2 === 1 ? 'assign' : 'update';
+      const I = it[iterIdx]; const centers = phase === 'update' ? I.centersAfter : phase === 'assign' ? I.centersBefore : C;
+      const asg = phase === 'init' ? null : I.assign;
+      const sizes = centers.map((_, j) => asg ? asg.filter(a => a.best === j).length : 0);
+      const mean = centers[0].map((_, k) => centers.reduce((s, c) => s + c[k], 0) / centers.length);
+      let html = `<div class="verdict"><span class="big">${phase === 'init' ? 'מרכזים התחלתיים' : `איטרציה ${I.it} · ${phase === 'assign' ? 'שיוך נקודות' : 'עדכון מרכזים'}`}</span>${asg ? kv('גודל אשכולות', sizes.join(' / ')) : ''}${phase === 'update' ? kv('Distortion', F(I.distortion, 3)) : ''}${kv('ממוצע המרכזים', vec(mean.map(v => +v.toFixed(3))))}</div>`;
+      if (phase === 'update' && I.converged) html += '<p class="note">אף נקודה לא החליפה אשכול — האלגוריתם התכנס.</p>';
+      if (P[0].length === 2) html += plot({
+        pts: P.map((p, i) => ({ x: p[0], y: p[1], color: asg ? kcol(asg[i].best) : 'var(--muted)', r: 5.5 })),
+        centers: centers.map((c, j) => ({ x: c[0], y: c[1], color: kcol(j) })),
+        trails: phase === 'update' ? I.centersBefore.map((c, j) => [{ x: c[0], y: c[1] }, { x: I.centersAfter[j][0], y: I.centersAfter[j][1] }, kcol(j)]) : []
+      });
+      html += `<div class="mathblock">${centers.map((c, j) => `c${j + 1} = ${vec(c.map(v => +v.toFixed(4)))}${phase === 'update' ? `   ← ממוצע של ${sizes[j]} נקודות` : ''}`).join('\n')}</div>`;
+      if (asg) html += tbl(['נקודה', ...I.centersBefore.map((_, j) => `d לc${j + 1}`), 'אשכול'], P.map((p, i) => `<tr><td class="m">${vec(p)}</td>${asg[i].ds.map((d, j) => `<td class="m" style="${j === asg[i].best ? 'font-weight:700;color:' + kcol(j) : ''}">${F(d, 3)}</td>`).join('')}<td><b style="color:${kcol(asg[i].best)}">c${asg[i].best + 1}</b></td></tr>`));
+      out.innerHTML = html;
+      $('#km-prev', sec).disabled = st === 0; $('#km-next', sec).disabled = st === it.length * 2;
+    };
+  }
+});
+
+/* ---------- 9. DBSCAN ---------- */
+TOPICS.push({
+  id: 'dbscan', name: 'DBSCAN', en: 'Density Clustering', freq: 1,
+  lede: 'לכל נקודה סופרים שכנים בתוך רדיוס r. Core = לפחות MinPts שכנים. Border = לא core אבל שכנה של core. Noise = כל השאר.',
+  formula: ['N(p) = { q ≠ p : d(p,q) ≤ r }', 'Core: |N(p)| ≥ MinPts'],
+  presets: [{ label: exl('c25b', 2), v: { 'db-p': DB_PTS, 'db-r': 1, 'db-m': 2, 'db-s': '1 5', 'db-f': '3 4' } }],
+  body: `<div class="bench"><div class="inputs">
+    <label class="f">נקודות<textarea id="db-p" rows="8">${DB_PTS}</textarea></label>
+    <div class="row2"><label class="f">r<input id="db-r" type="number" step="any" value="1"></label><label class="f">MinPts<span class="hint">לא כולל את הנקודה</span><input id="db-m" type="number" value="2"></label></div>
+    <div class="row2"><label class="f">מטריקה<select id="db-met"><option value="L2">L2</option><option value="L1">L1</option></select></label><label class="f">נקודת התחלה<input id="db-s" class="mono" value="1 5"></label></div>
+    <label class="f">הדגש נקודה<input id="db-f" class="mono" value="3 4"></label>
+  </div><div class="out" id="db-out"></div></div>`,
+  traps: ['בדקו בשאלה אם MinPts כולל את הנקודה עצמה או לא — זה משנה את התשובה.',
+    'נקודת Border לא מרחיבה את האשכול — רק נקודות Core ממשיכות את ההתפשטות.',
+    'נקודה במרחק בדיוק r נחשבת שכנה (≤).',
+    'בניגוד ל-K-Means, לא צריך לקבוע מראש את מספר האשכולות, ויש נקודות שלא שייכות לאף אשכול (Noise).'],
+  mount(sec) { this.run = () => {
+    const P = numRows($('#db-p', sec).value).filter(r => r.length === 2); if (!P.length) return;
+    const r = +$('#db-r', sec).value, m = +$('#db-m', sec).value, met = $('#db-met', sec).value;
+    const find = id => { const v = $(id, sec).value.split(/[,\s]+/).filter(Boolean).map(Number); return P.findIndex(p => p[0] === v[0] && p[1] === v[1]); };
+    const si = Math.max(0, find('#db-s')), fi = find('#db-f');
+    const R = ML.dbscan(P, r, m, met, si);
+    const nm = { core: 'Core', border: 'Border', noise: 'Noise' };
+    const cnt = t => R.type.filter(x => x === t).length;
+    let html = `<div class="verdict">${fi >= 0 ? `<span class="big ltr">${vec(P[fi])} = ${nm[R.type[fi]]}</span>` : ''}${kv('אשכולות', R.nClusters)}${kv('Core / Border / Noise', `${cnt('core')} / ${cnt('border')} / ${cnt('noise')}`)}</div>`;
+    html += plot({ pts: P.map((p, i) => ({ x: p[0], y: p[1], color: R.cluster[i] >= 0 ? kcol(R.cluster[i]) : 'var(--muted)', shape: R.type[i] === 'core' ? 'dot' : R.type[i] === 'border' ? 'ring' : 'x', hl: i === fi })), circles: fi >= 0 && met === 'L2' ? [{ x: P[fi][0], y: P[fi][1], r }] : [] });
+    html += '<p class="note">● Core &nbsp; ○ Border &nbsp; × Noise · הצבע = האשכול</p>';
+    html += tbl(['נקודה', 'שכנים ברדיוס', '#', 'סוג', 'אשכול'], P.map((p, i) => `<tr class="${i === fi ? 'hl' : ''}"><td class="m">${vec(p)}</td><td class="m">${R.nb[i].map(j => vec(P[j])).join(' ') || '—'}</td><td class="m">${R.nb[i].length}</td><td><b>${nm[R.type[i]]}</b></td><td>${R.cluster[i] >= 0 ? R.cluster[i] + 1 : '—'}</td></tr>`));
+    $('#db-out', sec).innerHTML = html;
+  }; }
+});
+
+/* ---------- 10. AdaBoost ---------- */
+TOPICS.push({
+  id: 'ada', name: 'AdaBoost', en: 'Boosting', freq: 3,
+  lede: 'מתחילים עם משקל שווה לכל דוגמה. בכל סבב: ε = סכום משקלי הטעויות, α = ½·ln((1−ε)/ε), טעויות מוכפלות ב-e^α, נכונות ב-e^−α, ומנרמלים.',
+  formula: ['εₜ = Σ_{טעויות} Dₜ(i)', 'αₜ = ½·ln((1−εₜ)/εₜ)', 'Dₜ₊₁(i) = Dₜ(i)·e^(∓αₜ) / Zₜ'],
+  presets: [
+    { label: exl('b26a', 1), sub: 'w', v: { 'a-n': 10, 'a-r': '1 2\n1' }, note: 'אחרי הנרמול שתי הטעויות מחזיקות יחד 0.5 (כל אחת 0.25), והנכונות יחד 0.5. h₂ טועה רק באחת מהן → ε₂ = 0.25.' },
+    { label: 'דוגמת ההרצאה', sub: 'w', v: { 'a-n': 10, 'a-r': '1 2 3\n4 5 6' } },
+    { label: exl('c25b', 9), sub: 'h', v: { 'a-hp': '-3 1  N\n0 0  N\n0 -1  N\n2 -4  P\n2 1  P\n-3 -1  P\n3 -1  N', 'a-hc': '3 -2 4', 'a-hw': 'א 0.2 0.1 0.1 0.2 0.2 0.1 0.1\nב 0.2 0.1 0.1 0.2 0.1 0.1 0.2\nג 0.1 0.2 0.1 0.3 0.1 0.1 0.1\nד 0.2 0.2 0.1 0.2 0.05 0.05 0.2\nה 0.1 0.05 0.05 0.15 0.15 0.25 0.25' } }
+  ],
+  body: `<div class="sub" role="tablist"></div><p class="note pnote" hidden></p>
+  <div class="bench"><div class="inputs">
+    <div data-pane="w"><label class="f">מס' דוגמאות<input id="a-n" type="number" min="2" value="10"></label>
+      <label class="f">טעויות בכל סבב<span class="hint">שורה לכל סבב: מספרי הדוגמאות שהמסווג טעה בהן</span><textarea id="a-r" rows="4" style="min-height:80px">1 2
+1</textarea></label></div>
+    <div data-pane="h"><label class="f">דוגמאות: f1 f2 תיוג<textarea id="a-hp" rows="7"></textarea></label>
+      <label class="f">היפותזה: מקדמים a b c<span class="hint">ŷ = sgn(a·f1 + b·f2 + c)</span><input id="a-hc" class="mono" value="3 -2 4"></label>
+      <label class="f">סטים של משקולות לבדיקה<span class="hint">שם ואז משקל לכל דוגמה</span><textarea id="a-hw" rows="5"></textarea></label></div>
+  </div><div class="out" id="a-out"></div></div>`,
+  traps: ['ε הוא סכום המשקלים של הדוגמאות שטעו — לא מספר הטעויות חלקי N (רק בסבב הראשון זה יוצא אותו דבר).',
+    'עובדה שימושית: אחרי כל עדכון, סך המשקלים של הדוגמאות שטעו = 0.5 בדיוק. זה מקצר חישובים.',
+    'היפותזה חוקית בסבב הבא רק אם ε < 0.5 (טובה מניחוש).',
+    'AdaBoost עם עצי החלטה יכול לייצר מפריד לא לינארי ולהגיע לאפס שגיאות על האימון.',
+    'בגרף אחרי סבב: הנקודות שסווגו לא נכון גדלות, הנכונות קטנות.'],
+  mount(sec) {
+    subTabs(sec, this, [['w', 'עדכון משקלים'], ['h', 'בדיקת היפותזה']]);
+    $('#a-hp', sec).value = this.presets[2].v['a-hp']; $('#a-hw', sec).value = this.presets[2].v['a-hw'];
+    this.run = () => {
+      const out = $('#a-out', sec);
+      if (this.sub === 'w') {
+        const N = Math.max(2, +$('#a-n', sec).value || 2);
+        const rounds = $('#a-r', sec).value.split('\n').map(l => l.split(/[,\s]+/).filter(Boolean).map(x => +x - 1).filter(i => i >= 0 && i < N)).filter(r => r.length);
+        if (!rounds.length) return; const R = ML.adaboost(N, rounds);
+        let html = `<div class="verdict">${R.map(r => kv(`ε${r.t}`, F(r.eps))).join('')}${R.map(r => kv(`α${r.t}`, F(r.alpha))).join('')}</div>`;
+        html += R.map(r => `<div class="mathblock"><b>סבב ${r.t}</b>: טעויות = {${r.wrong.map(i => i + 1).join(', ')}}
+ε${r.t} = ${r.wrong.map(i => F(r.before[i])).join(' + ')} = ${F(r.eps)}
+α${r.t} = ½·ln((1−${F(r.eps)})/${F(r.eps)}) = ½·ln(${F((1 - r.eps) / r.eps)}) = ${F(r.alpha)}
+טעות:  w·e^α  = w·${F(Math.exp(r.alpha))}     נכון: w·e^−α = w·${F(Math.exp(-r.alpha))}
+Z = ${F(r.Z)}  → אחרי נרמול: משקל הטעויות יחד = ${F(r.wrong.reduce((s, i) => s + r.after[i], 0))}</div>`).join('');
+        html += tbl(['#', 'התחלה', ...R.map(r => `אחרי סבב ${r.t}`)], Array.from({ length: N }, (_, i) => `<tr><td class="m">${i + 1}</td><td class="m">${F(R[0].before[i])}</td>${R.map(r => `<td class="m" style="${r.wrong.includes(i) ? 'color:var(--red);font-weight:700' : ''}">${F(r.after[i])}</td>`).join('')}</tr>`));
+        out.innerHTML = html + '<p class="note">אדום = הדוגמה סווגה לא נכון באותו סבב ולכן המשקל שלה עלה.</p>';
+      } else {
+        const pts = ML.rows($('#a-hp', sec).value).filter(r => r.length >= 3).map(r => ({ x: r.slice(0, -1).map(ML.parseNum), y: ML.isPos(r[r.length - 1]) }));
+        const co = $('#a-hc', sec).value.split(/[,\s]+/).filter(Boolean).map(ML.parseNum); if (!pts.length || co.length !== pts[0].x.length + 1) return;
+        const pr = pts.map(p => { const v = p.x.reduce((s, x, j) => s + co[j] * x, co[co.length - 1]); return { v, p: v > 0 }; });
+        const wrong = pts.map((p, i) => pr[i].p !== p.y);
+        let html = tbl(['#', 'x', 'אמת', 'חישוב', 'ŷ', ''], pts.map((p, i) => `<tr class="${wrong[i] ? 'hl' : ''}"><td class="m">${i + 1}</td><td class="m">${vec(p.x)}</td><td>${posLbl(p.y)}</td><td class="m">${p.x.map((x, j) => `${F(co[j])}·${F(x)}`).join(' + ')} + ${F(co[co.length - 1])} = ${F(pr[i].v)}</td><td>${posLbl(pr[i].p)}</td><td>${wrong[i] ? '<span class="no">טעות</span>' : ''}</td></tr>`));
+        const sets = ML.rows($('#a-hw', sec).value).map(r => ({ n: r[0], w: r.slice(1).map(ML.parseNum) })).filter(s => s.w.length === pts.length);
+        html = `<div class="verdict"><span class="big">טועה ב: ${wrong.map((w, i) => w ? i + 1 : null).filter(Boolean).join(', ')}</span></div>` + html;
+        if (sets.length) html += tbl(['סט', 'ε = Σ משקלי הטעויות', 'חוקית (ε < 0.5)?'], sets.map(s => { const e = s.w.reduce((a, w, i) => wrong[i] ? a + w : a, 0); return `<tr class="${e < 0.5 ? 'hl' : ''}"><td><b>${esc(s.n)}</b></td><td class="m">${s.w.map((w, i) => wrong[i] ? F(w) : null).filter(x => x != null).join(' + ')} = ${F(e)}</td><td>${e < 0.5 ? '<span class="yes">כן</span>' : '<span class="no">לא</span>'}</td></tr>`; }));
+        if (pts[0].x.length === 2) html += plot({ pts: pts.map((p, i) => ({ x: p.x[0], y: p.x[1], color: p.y ? 'var(--k2)' : 'var(--k0)', shape: p.y ? 'tri' : 'dot', label: i + 1, r: 7 })), lines: [{ a: co[0], b: co[1], c: co[2] }] });
+        out.innerHTML = html;
+      }
+    };
+  }
+});
+
+/* ---------- 11. Neural nets ---------- */
+TOPICS.push({
+  id: 'nn', name: 'רשתות נוירונים', en: 'Forward pass · Logic', freq: 2,
+  lede: 'כל שורה = נוירון: משקלים מהשכבה הקודמת, ואחרי | ה-bias (לא חובה). שורה ריקה = שכבה חדשה. sgn כאן מוגדר 1 אם x ≥ 0, אחרת 0 — כמו במבחן.',
+  formula: ['net = Σ wᵢ·inᵢ + b', 'out = sgn(net) = 1 אם net ≥ 0, אחרת 0'],
+  presets: [
+    { label: exl('c25b', 8), v: { 'nn-l': '1 1 0\n1 0 1\n\n2 2\n-2 0', 'nn-x': '1 2 1', 'nn-a': 'step' }, note: 'נוירון עליון: x1, x2 · נוירון תחתון: x1, x3. out1 מקבל 2 משניהם, out2 מקבל −2 רק מהעליון.' },
+    { label: 'XOR ב-3 נוירונים', v: { 'nn-l': '-1 -1 | 1.5\n1 1 | -0.5\n\n1 1 | -1.5', 'nn-x': '1 0', 'nn-a': 'step' }, note: 'שכבה ראשונה: NAND ו-OR. שכבה שנייה: AND שלהם = XOR. נסו את 4 הקלטים.' }
+  ],
+  body: `<p class="note pnote" hidden></p><div class="bench"><div class="inputs">
+    <label class="f">שכבות<textarea id="nn-l" rows="7">1 1 0
+1 0 1
+
+2 2
+-2 0</textarea></label>
+    <label class="f">קלט<input id="nn-x" class="mono" value="1 2 1"></label>
+    <label class="f">אקטיבציה<select id="nn-a"><option value="step">sgn: 1 / 0</option><option value="sign">sign: +1 / −1</option><option value="sigmoid">sigmoid</option><option value="relu">ReLU</option><option value="linear">ללא (לינארי)</option></select></label>
+  </div><div class="out" id="nn-out"></div></div>`,
+  traps: ['פרספטרון בודד = מפריד לינארי אחד. AND, OR, NAND, NOT — נוירון אחד. XOR — צריך שכבה נסתרת (לפחות 3 נוירונים).',
+    'שאלת "@" (ב\'25 ב\' ש9): הטבלה של @ היא NAND. A@A = NOT A, ‏(A@B)@(A@B) = AND, ‏(A@A)@(B@B) = OR — כל אחת לינארית ← נוירון אחד לכל פונקציה, 3 סה"כ.',
+    'בחישוב קדימה: מחשבים שכבה שלמה, ורק את הפלטים שלה מעבירים לשכבה הבאה.'],
+  mount(sec) { this.run = () => {
+    const blocks = $('#nn-l', sec).value.trim().split(/\n\s*\n/);
+    const layers = blocks.map(b => b.split('\n').filter(l => l.trim()).map(l => { const [w, bb] = l.split('|'); return { w: w.trim().split(/[,\s]+/).filter(Boolean).map(ML.parseNum), b: bb ? ML.parseNum(bb) : 0 }; }));
+    const x = $('#nn-x', sec).value.split(/[,\s]+/).filter(Boolean).map(ML.parseNum); const a = $('#nn-a', sec).value;
+    if (!layers.length || !x.length) return;
+    const T = ML.forward(layers, x, a); const outL = T[T.length - 1].outs;
+    let html = `<div class="verdict"><span class="big">פלט: ${outL.map((o, i) => `out${i + 1}=${F(o.out, 3)}`).join(' · ')}</span></div>`;
+    html += T.map((L, li) => `<div class="mathblock"><b>${li === T.length - 1 ? 'שכבת פלט' : `שכבה נסתרת ${li + 1}`}</b> · קלט ${vec(L.inputs)}
+${L.outs.map((o, j) => `${li === T.length - 1 ? 'out' : 'h'}${j + 1}: net = ${o.n.w.map((w, i) => `${F(w)}·${F(L.inputs[i] ?? 0)}`).join(' + ')}${o.n.b ? ` + (${F(o.n.b)})` : ''} = ${F(o.net)} → ${F(o.out, 4)}`).join('\n')}</div>`).join('');
+    // diagram
+    const cols = [x.length, ...layers.map(l => l.length)], W = 460, H = Math.max(...cols) * 70 + 30;
+    const pos = cols.map((n, c) => Array.from({ length: n }, (_, i) => ({ x: 40 + c * (W - 80) / (cols.length - 1), y: H / 2 + (i - (n - 1) / 2) * 70 })));
+    let g = '';
+    layers.forEach((L, li) => L.forEach((n, j) => n.w.forEach((w, i) => { if (!w || !pos[li][i]) return; const A = pos[li][i], B = pos[li + 1][j]; g += `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" style="stroke:${w > 0 ? 'var(--pen)' : 'var(--red)'}" stroke-width="${1 + Math.min(3, Math.abs(w))}" stroke-opacity=".7"/><text x="${A.x + (B.x - A.x) * .3}" y="${A.y + (B.y - A.y) * .3 - 4}" style="fill:var(--ink)">${F(w)}</text>`; })));
+    const vals = [x, ...T.map(t => t.outs.map(o => o.out))];
+    pos.forEach((c, ci) => c.forEach((p, i) => g += `<circle cx="${p.x}" cy="${p.y}" r="20" style="fill:var(--sheet);stroke:var(--ink)" stroke-width="1.6"/><text x="${p.x}" y="${p.y + 4}" text-anchor="middle" style="fill:var(--ink);font-weight:600">${F(vals[ci][i], 2)}</text>`));
+    html += `<div class="svgwrap"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="תרשים הרשת">${g}</svg></div>`;
+    $('#nn-out', sec).innerHTML = html;
+  }; }
+});
+
+/* ---------- 12. Theory ---------- */
+TOPICS.push({
+  id: 'theory', name: 'שאלות עיוניות', en: 'Concepts', freq: 4,
+  lede: 'השאלות שאין בהן חישוב ארוך אבל חוזרות שוב ושוב. נסו לענות לבד לפני שפותחים את התשובה.',
+  body: `<div class="cards">
+  <div class="card"><h3>One-vs-One מול One-vs-All</h3><p>כמה מודלים צריך לבעיה עם k מחלקות?</p>
+    <label class="f">k =<input id="th-k" type="number" min="2" value="15"></label><div id="th-o" class="mathblock"></div></div>
+  <div class="card"><h3>מיפוי למעגל (${EX.b24a} ש8)</h3><p>איזה מיפוי מאפשר להפריד לינארית נקודות בתוך/מחוץ למעגל?</p>
+    <details><summary>הסבר</summary><p>משוואת מעגל: <span class="math">−2a·x₁ − 2b·x₂ + 1·(x₁²+x₂²) + (a²+b²−r²) = 0</span>. זו משוואה לינארית במשתנים <span class="math">(x₁, x₂, x₁²+x₂²)</span> — לכן המיפוי הראשון עובד. <span class="math">x₁²</span> לבד או <span class="math">x₁²·x₂²</span> לא מספיקים. במיפוי <span class="math">x₁²+x₂²+x₁⁴+x₂⁴</span> החזקה הרביעית "נעולה" לאותו משקל כמו הריבועית ואי אפשר לאפס אותה. תשובה: מיפוי אחד.</p></details></div>
+  <div class="card"><h3>הגדלת γ ב-RBF (${EX.b26a} ש3)</h3><p>מה קורה כשמעלים γ מ-0.01 ל-1?</p>
+    <details><summary>תשובה</summary><p>הקרנל נעשה "צר": ערך הקרנל בין נקודות רחוקות <b>קטן</b>, כל נקודה משפיעה רק על סביבה קרובה, המודל מורכב יותר → <b>סביר שיותר overfitting</b>. אין הבטחה לשיפור ב-test.</p></details></div>
+  <div class="card"><h3>עץ החלטה ID3 (${EX.b26a} ש9)</h3><p>מאפיינים קטגוריים: צבע חולצה, סוג נעליים, גובה. איזו טענה נכונה?</p>
+    <details><summary>תשובה</summary><p><b>מאפיין בשורש לא יופיע שוב בהמשך העץ</b> — כל מסלול כבר מכיל אותו, ובכל ענף ערכו כבר ידוע. מאפיין ברמה 2 יכול להופיע ברמה 3 בענף אחר. מאפיין שלא בשורש לא חייב להופיע בכלל. הופעה של כל המאפיינים לא מבטיחה overfitting או underfitting.</p></details></div>
+  <div class="card"><h3>איזה אלגוריתם יפריד בצורה מושלמת? (${EX.b24a} ש7)</h3><p>נתונים שאינם פרידים לינארית (שתי "רצועות" אלכסוניות + נקודות חריגות).</p>
+    <details><summary>תשובה</summary><p>פרספטרון ו-SVM Hard (ללא קרנל) — מפרידים לינאריים, לא יגיעו לאפס טעויות. <b>עץ החלטה ורשת נוירונים</b> (עם מספיק שכבות) — כן. גם AdaBoost מעל עצי החלטה התקבל.</p></details></div>
+  <div class="card"><h3>3 מחלקות על גריד (${EX.b25a} ש9)</h3><p>מחלקה 1 למעלה-ימין, 3 למטה-שמאל, 2 באמצע. איזו שיטה תיתן אפס טעויות?</p>
+    <details><summary>תשובה</summary><p>"2 מול כולם" לא פריד לינארית (מחלקה 2 באמצע בין השתיים). ב-<b>One-vs-One</b> כל זוג מחלקות פריד בקו ישר → 3 פרספטרונים + majority voting.</p></details></div>
+  <div class="card"><h3>AUC מול EER</h3><p>מסווג שהעקומה שלו היא בדיוק האלכסון (או מדרגות סימטריות סביבו)?</p>
+    <details><summary>תשובה</summary><p>AUC = 0.5 ו-EER = 0.5 → שווים. ככל שהמסווג טוב יותר AUC עולה ל-1 ו-EER יורד ל-0, ואז AUC > EER.</p></details></div>
+  <div class="card"><h3>Overfitting בקצרה</h3><p>מתי סביר overfitting?</p>
+    <details><summary>תשובה</summary><p>מודל מורכב ביחס לכמות הנתונים: עץ עמוק מאוד, k=1 ב-KNN, γ גדול ב-RBF, רשת גדולה. סימן מובהק: Accuracy גבוה באימון ונמוך במבחן (ההפרש שמחושב בשאלות הפרספטרון).</p></details></div>
+  </div>`,
+  mount(sec) { this.run = () => { const k = Math.max(2, +$('#th-k', sec).value || 2); const ovo = k * (k - 1) / 2;
+    $('#th-o', sec).textContent = `One-vs-All: ${k} מודלים\nOne-vs-One: C(${k},2) = ${k}·${k - 1}/2 = ${ovo} מודלים\nיחס: ${ovo}/${k} = ${F(ovo / k)} = (k−1)/2`; }; }
+});
+
+/* ================= BOOT ================= */
+(function boot() {
+  const nav = $('#nav'), main = $('#main');
+  const order = [...TOPICS];
+  nav.innerHTML = '<div class="lbl">נושאים · כמה מבחנים מתוך 7</div>' + order.map(t => `<button data-id="${t.id}"><span>${t.name}</span><span class="freq">${t.freq}/7</span></button>`).join('');
+  order.forEach(t => {
+    const sec = document.createElement('section'); sec.className = 'topic'; sec.id = t.id; sec.hidden = true; sec.innerHTML = shell(t); main.appendChild(sec);
+    t.mount(sec);
+    sec.addEventListener('input', e => { if (!e.target.closest('.sub')) t.run(); });
+    sec.addEventListener('change', () => t.run());
+    $$('.chip', sec).forEach(c => c.addEventListener('click', () => applyPreset(sec, t, +c.dataset.p)));
+    if (t.presets && t.presets.length) applyPreset(sec, t, 0); else t.run();
+  });
+  $$('textarea').forEach(t => t.dir = 'auto');
+  const show = id => {
+    if (!TOPICS.some(t => t.id === id)) id = TOPICS[0].id;
+    TOPICS.forEach(t => { $('#' + t.id).hidden = t.id !== id; });
+    $$('button', nav).forEach(b => b.setAttribute('aria-current', b.dataset.id === id));
+    try { localStorage.setItem('ml-topic', id); } catch (e) { }
+    if (location.hash.slice(1) !== id) history.replaceState(null, '', '#' + id);
+  };
+  nav.addEventListener('click', e => { const b = e.target.closest('button'); if (b) { show(b.dataset.id); if (window.innerWidth < 900) main.scrollIntoView({ block: 'start' }); } });
+  let start = location.hash.slice(1); if (!start) { try { start = localStorage.getItem('ml-topic'); } catch (e) { } }
+  show(start || TOPICS[0].id);
+  window.addEventListener('hashchange', () => show(location.hash.slice(1)));
+})();
+</script>
+
+</body></html>
